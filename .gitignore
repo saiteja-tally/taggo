@@ -1,3 +1,4 @@
+################################## python ##################################
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -169,3 +170,38 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+########################################## python (end) ##################################
+
+
+################################## Next.js ##################################
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Next.js static files
+public/static/
+
+# Next.js serverless functions
+.vercel/
+
+# Next.js cache
+.next/cache/
+
+# dotenv environment variables file
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next.js typescript
+.next/types/
