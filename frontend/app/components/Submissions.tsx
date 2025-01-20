@@ -6,6 +6,7 @@ import BACKEND_URLS from "../BackendUrls";
 import { FaSpinner } from "react-icons/fa";
 import { FaExclamationCircle } from "react-icons/fa"; // Import icon from react-icons library
 import axiosInstance from "../utils/axiosInstance";
+import { group } from "console";
 
 interface Annotation {
   id: string;
@@ -16,7 +17,7 @@ interface Annotation {
 }
 
 interface Option {
-  value: string;
+  value: number | null;
   label: string;
 }
 
@@ -26,7 +27,7 @@ const Submissions = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLastPage, setIsLastPage] = useState(false);
   const [hoveredRowID, sethoveredRowID] = useState<string | null>(null);
-
+  const [users, setUsers] = useState<Option[]>([]);
 
   // Filter states for each column
   const [statusFilter, setStatusFilter] = useState<Option[]>([]);
@@ -56,16 +57,62 @@ const Submissions = () => {
     fetchData(page);
   }, [page]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axiosInstance.get(BACKEND_URLS.get_users);
+        if (response.status !== 200) {
+          throw new Error("Failed to fetch users");
+        }
+        const data = response.data;
+        setUsers(data.data.map((user: any) => ({ value: user.id, label: user.username, group: user.groups })));
+      } catch (error: any) {
+        setData([]);
+        console.error("Failed to fetch users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+
   // Extract unique values for dropdowns
   const uniqueStatuses = Array.from(new Set(data.map((item) => item.status)));
 
-  const toOption = (value: string): Option => ({ value, label: value });
+  const handleUserChange = async (id: string, user_id: number | null) => {
+    try {
+      const response = await axiosInstance.post(BACKEND_URLS.assign_annotation, {
+        id,
+        user_id,
+      });
+      if (response.status === 200) {
+        console.log("User assigned successfully");
+      } else {
+        console.error("Failed to assign user:", response.statusText);
+      }
+    } catch (error: any) {
+      console.error("Error assigning user:", error.response?.data.message || error.message);
+    }
+  }
+
+  const handleSmartAssign = async () => {
+    try {
+      const response = await axiosInstance.post(BACKEND_URLS.smart_assign);
+      if (response.status === 200) {
+        console.log("Smart assign successful");
+      } else {
+        console.error("Failed to smart assign:", response.statusText);
+      }
+    } catch (error: any) {
+      console.error("Error during smart assign:", error.response?.data.message || error.message);
+    }
+  }
 
   // Filtering logic based on column values
   const filteredData = data.filter(
     (item) =>
     (statusFilter.length === 0 ||
-      statusFilter.some((filter) => filter.value === item.status))
+      statusFilter.some((filter) => filter.label === item.status))
   );
 
   if (isLoading) {
@@ -119,8 +166,16 @@ const Submissions = () => {
             <div className="">
               <h1>ID</h1>
             </div>
-            <div className="">
+            <div className="flex justify-center">
               <h1>Assignee</h1>
+              {users.length > 0 &&
+                <div className="flex items-center"
+                title="Smart Assign">
+                  <button className="bg-white rounded-md ml-2"
+                    onClick={handleSmartAssign}>
+                    <img src="assign-user.svg" alt="Smart Assign" className="w-6 h-6" />
+                  </button>
+                </div>}
             </div>
             <div className="">
               <h1>Status</h1>
@@ -130,7 +185,7 @@ const Submissions = () => {
         <div className="">
           {filteredData.map((item) => (
             <div
-              className="my-4 p-4 bg-white border border-blue-300 rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out"
+              className="my-4 p-4 bg-white border border-blue-300 rounded-md shadow-md hover:shadow-lg transition duration-600 ease-in-out"
               key={item.id}
               onMouseEnter={() => sethoveredRowID(item.id)}
               onMouseLeave={() => sethoveredRowID(null)}
@@ -140,49 +195,50 @@ const Submissions = () => {
                   <p className="text-sm font-semibold">{item.id}</p>
                 </div>
                 <div className="flex justify-center">
-                  <Select
-                  value={item.assigned_to_user ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
-                  options={[{ value: 1, label: "User 1" }, { value: 2, label: "User 2" }, { value: 3, label: "User 3" }]} // Example options
-                  onChange={(selectedOption) => {
-                    // Handle the change event
-                    item.assigned_to_user = selectedOption?.label || null;
-                  }}
-                  placeholder="Select user"
-                  className="w-1/2"
-                  />
-                </div>
-                <div className="text-center" onClick={() => setTriageReady(true)}>
-                  <Link
-                    href={{
-                      pathname: "/triage",
-                      query: {
-                        doc_id: item.id,
-                        json_type: item.status === "verified" ? "gt" : "ai",
-                        status: item.status,
-                      },
+                  {(users.length > 0) ? <Select
+                    value={item.assigned_to_user ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
+                    options={users} // Example options
+                    onChange={(selectedOption) => {
+                      // Handle the change event
+                      item.assigned_to_user = selectedOption?.label || null;
+                      handleUserChange(item.id, selectedOption?.value || null);
                     }}
-                    className={`text rounded-lg p-2 cursor-pointer ${item.status === "uploaded"
-                      ? "bg-blue-200"
-                      : item.status === "labelled"
-                        ? "bg-blue-300"
-                        : item.status === "revieved"
-                          ? "bg-blue-400"
-                          : item.status === "Done"
-                            ? "bg-blue-500"
-                            : item.status === "failed"
-                              ? "bg-blue-600"
-                              : "bg-blue-700"
-                      }`}
-                  >
-                    {item.status}
-                  </Link>
+                    placeholder="Select user"
+                    className="w-1/2"
+                  /> :
+                    <p className="text-sm font-semibold">{item.assigned_to_user}</p>}
                 </div>
+                <Link
+                  href={{
+                    pathname: "/triage",
+                    query: {
+                      doc_id: item.id,
+                      history: JSON.stringify(item.history),
+                      status: item.status,
+                    },
+                  }}
+                  onClick={() => setTriageReady(true)}
+                  className={`text-center rounded-lg p-2 cursor-pointer ${item.status === "uploaded"
+                    ? "bg-blue-200"
+                    : item.status === "labelled"
+                      ? "bg-blue-300"
+                      : item.status === "reviewed"
+                        ? "bg-blue-400"
+                        : item.status === "Done"
+                          ? "bg-blue-500"
+                          : item.status === "failed"
+                            ? "bg-blue-600"
+                            : "bg-blue-700"
+                    }`}
+                >
+                  {item.status}
+                </Link>
               </div>
               {(item.id == hoveredRowID) && (
                 <div className="text-blue-500">
-                  {item.history.map((history, index) => (
+                  {item.history.map((instance, index) => (
                     <div key={index} className="flex justify-between">
-                      <p className="text-sm">{history}</p>
+                      <p className="text-sm">{instance}</p>
                     </div>
                   ))}
                 </div>
@@ -219,3 +275,4 @@ const Submissions = () => {
 }
 
 export default Submissions;
+

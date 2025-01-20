@@ -5,6 +5,7 @@ import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import PdfTools from "./PdfTools";
 import BACKEND_URLS from "@/app/BackendUrls";
 import { FaSpinner } from "react-icons/fa";
+import axiosInstance from "@/app/utils/axiosInstance";
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -284,11 +285,15 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             formData.append("file", blob, "cropped_image.png");
 
             try {
-              const response = await fetch(`${BACKEND_URLS.getOCRText}`, {
-                method: "POST",
-                body: formData,
-              });
-              const data = await response.json();
+              const response = await axiosInstance.post(`${BACKEND_URLS.get_ocr_text}`,
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              const data = await response.data;
               if (
                 selectedField != "Table" &&
                 selectedField != "LedgerDetails" &&
@@ -335,11 +340,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         handleScaleChange={handleScaleChange}
       />
       <div
-        className={`${
-          viewType === "General" ? "w-[70vw] h-[87.5vh]" : "h-[50vh]"
-        } overflow-auto scroll-smooth ${
-          !boxLocation && selectedField ? "cursor-crosshair" : ""
-        }`}
+        className={`${viewType === "General" ? "w-[70vw] h-[87.5vh]" : "h-[50vh]"
+          } overflow-auto scroll-smooth ${!boxLocation && selectedField ? "cursor-crosshair" : ""
+          }`}
         ref={viewerRef}
       >
         {loading && (

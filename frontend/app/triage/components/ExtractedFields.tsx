@@ -5,6 +5,8 @@ import ToggleView from "./ToggleView";
 import { FaExclamationCircle } from "react-icons/fa";
 import AddField from "./AddField";
 import ROIField from "./ROIField";
+import axiosInstance from "@/app/utils/axiosInstance";
+import BACKEND_URLS from "@/app/BackendUrls";
 
 const predefinedFields = [
   "InvoiceDate",
@@ -47,7 +49,9 @@ const predefinedFields = [
 ];
 
 interface ExtractedFieldsProps {
-  doc_id: string | null,
+  doc_id: string | null;
+  status: string | null;
+  startAnnotation: () => void;
   handleFieldClick: (
     fieldName: string,
     index: number | null,
@@ -87,6 +91,8 @@ interface DisplayFields {
 
 const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   doc_id,
+  status,
+  startAnnotation,
   handleFieldClick,
   handleChangeView,
   viewType,
@@ -109,26 +115,31 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   if (extractedData == null) {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
-        <FaExclamationCircle className="text-5xl text-blue-400" />
-        <p className="text-xl text-blue-600 m-4">No data available</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Refresh
-        </button>
-      </div>
-    );
-  } else if (isEmptyObject(extractedData)) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
         <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
-        <p className="text-xl text-blue-600">AI failed to extract any field</p>
+        <p className="text-xl text-blue-600 mb-4">No data available</p>
+        <div className="space-x-4">
+          <button
+            onClick={() => startAnnotation()}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Annotate
+          </button>
+        </div>
       </div>
     );
   }
+  // else if (isEmptyObject(extractedData)) {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
+  //       <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
+  //       <p className="text-xl text-blue-600">AI failed to extract any field</p>
+  //     </div>
+  //   );
+  // }
 
   const [displayFields, setDisplayFields] = useState<DisplayFields>({});
+  const [reasonText, setReasonText] = useState<string>("");
+  const [rejected, setRejected] = useState<boolean>(false);
 
   useEffect(() => {
     const initialDisplayFields: DisplayFields = {};
@@ -283,11 +294,38 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
     };
   }, [dataChanged, handleSave, handleDiscard]);
 
+  const handleReject = async (reason: string) => {
+    if (!reason) {
+      alert("Please provide a reason for rejection.");
+      return;
+    }
+    try {
+      const response = await axiosInstance.post(BACKEND_URLS.reject_annotation, {
+        doc_id,
+        reason,
+      });
+      if (response.status === 200) {
+        // Reset the reason text
+        setReasonText("");
+        setRejected(true);
+        console.log("Rejected annotation successfully");
+      } 
+      
+      else {
+        console.error("Failed to reject annotation:", response.statusText);
+      }
+    }
+    catch (error: any) {
+      console.error("Error rejecting annotation:", error.response?.data.message || error)
+    }
+
+
+  }
+
   return (
     <div
-      className={`bg-white bg-opacity-0 ${
-        viewType === "General" ? "w-[30vw]" : "mt-2"
-      } text-center font-mono`}
+      className={`bg-white bg-opacity-0 ${viewType === "General" ? "w-[30vw]" : "mt-2"
+        } text-center font-mono`}
     >
       {isLoading && <p className="text-blue-500 p-1">Loading...</p>}
       {nodata && (
@@ -296,11 +334,10 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         </div>
       )}
       <div
-        className={`${
-          viewType === "General"
-            ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4 order-last"
-            : ""
-        }`}
+        className={`${viewType === "General"
+          ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4 order-last"
+          : ""
+          }`}
       >
         <div className="flex justify-between sm:text-xs md:text-xs lg:text-lg xl:text-lg ml-auto">
           {viewType === "General" && (
@@ -315,7 +352,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
           <div
             className="hover:bg-gray-200 rounded mr-2"
             title="Download JSON"
-            onClick={() => downloadJSON(extractedData, "extractedData.json")}
+            onClick={() => downloadJSON(extractedData, `${doc_id}.json`)}
           >
             <svg
               className="h-5 w-5 mt-2 text-black "
@@ -337,49 +374,64 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         </div>
       </div>
       <div
-        className={`${
-          viewType === "General" ? "h-[80vh] overflow-y-auto" : ""
-        } border shadow-inner`}
+        className={`${viewType === "General" ? "h-[80vh] overflow-y-auto" : ""
+          } border shadow-inner`}
       >
         {extractedData &&
           Object.entries(extractedData).map(([fieldName, fieldValue]) =>
             renderField(fieldName, fieldValue)
           )}
       </div>
-      <div className="p-4 flex justify-center space-x-4">
-        <div className="relative group">
-          <button
-            onClick={handleSave}
-            disabled={!dataChanged}
-            className={`${
-              dataChanged
+      {(status === "uploaded" || status === 'pre-labelled') &&
+        (<div className="p-4 flex justify-center space-x-4">
+          <div className="relative group">
+            <button
+              onClick={handleSave}
+              disabled={!dataChanged}
+              className={`${dataChanged
                 ? "bg-blue-500 hover:bg-blue-700"
                 : "bg-gray-300 text-gray-400 cursor-not-allowed"
-            } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300`}
-          >
-            Save
-          </button>
-          <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded py-1 px-2">
-            Alt+S
+                } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300`}
+            >
+              Save
+            </button>
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded py-1 px-2">
+              Alt+S
+            </div>
           </div>
-        </div>
-        <div className="relative group">
-          <button
-            onClick={handleDiscard}
-            disabled={!dataChanged}
-            className={`${
-              dataChanged
+          <div className="relative group">
+            <button
+              onClick={handleDiscard}
+              disabled={!dataChanged}
+              className={`${dataChanged
                 ? "bg-red-500 hover:bg-red-700"
                 : "bg-gray-300 text-gray-400 cursor-not-allowed"
-            } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300`}
-          >
-            Discard
-          </button>
-          <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded py-1 px-2">
-            Alt+D
+                } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300`}
+            >
+              Discard
+            </button>
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded py-1 px-2">
+              Alt+D
+            </div>
           </div>
+        </div>)}
+      {(status === 'rejected' || !rejected) && <div>
+        <div className="p-4 flex justify-center space-x-4">
+          <input
+            type="text"
+            className="border rounded py-2 px-4"
+            placeholder="Reason"
+            value={reasonText}
+            onChange={(e) => setReasonText(e.target.value)}
+          />
+          <button
+            onClick={() => handleReject(reasonText)}
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
+            Reject
+          </button>
         </div>
-      </div>
+      </div>}
     </div>
   );
 };

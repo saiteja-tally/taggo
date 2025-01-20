@@ -8,8 +8,6 @@ interface WithAuthProps {
 
 const withAuth = (WrappedComponent: FC<WithAuthProps>): FC<WithAuthProps> => {
     return (props: WithAuthProps) => {
-
-
         useEffect(() => {
             const token = localStorage.getItem('access_token');
             if (!token) {

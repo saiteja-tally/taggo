@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DocViewer from "@/app/triage/components/DocViewer";
 import ExtractedFields from "@/app/triage/components/ExtractedFields";
 import BACKEND_URLS from "@/app/BackendUrls";
+import axiosInstance from "@/app/utils/axiosInstance";
 
 interface InteractiveSpaceProps {
   doc_id: string | null;
@@ -148,20 +149,14 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
   };
 
   const handleSave = async () => {
-    console.log(extractedData);
+    console.log("save-data", extractedData);
     try {
-      const response = await fetch(
-        `${BACKEND_URLS.uploadGTJsonUrl}/${doc_id}/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(extractedData),
-        }
+      const response = await axiosInstance.post(
+        `${BACKEND_URLS.save_json}/labelled/${doc_id}/`,
+        JSON.stringify(extractedData)
       );
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         console.log("Data saved successfully");
         setDataChanged(false);
         setNoData(false);
@@ -173,24 +168,19 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     }
   };
 
-  const handleDiscard = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(
-        `${BACKEND_URLS.getJsonUrl}/${
-          status
-        }/${doc_id}`
+      const response = await axiosInstance.get(
+        `${BACKEND_URLS.get_json}/${status}/${doc_id}`
       );
-      const data = await response.json();
+      const data = await response.data.data;
       if (data && !data.detail) {
-        const initialData = data;
-        setExtractedData(initialData);
+        setExtractedData(data);
         setDataChanged(false);
       } else {
-        setExtractedData((prevData) => {
-          return {};
-        });
+        setExtractedData(null);
         setNoData(true);
-        setDataChanged(false);
       }
       setLoading(false);
     } catch (error) {
@@ -199,30 +189,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${BACKEND_URLS.getJsonUrl}/${status}/${doc_id}`
-        );
-        const data = await response.json();
-        if (data && !data.detail) {
-          const initialData = data;
-          setExtractedData(initialData);
-          // setExtractedData(require("./tally.json"));
-          setDataChanged(false);
-        } else {
-          setExtractedData(null);
-          setNoData(true);
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      }
-    };
+  const handleDiscard = async () => {
+    fetchData();
+  };
 
+  useEffect(() => {
     fetchData();
   }, [doc_id]);
 
@@ -232,10 +203,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     colName: string | null,
     location: Record<string, any>
   ) => {
-
-    // console.log(index)
-    // console.log(fieldName)
-    // console.log(location)
 
     if (location.pageNo !== 0) {
       setSelectedRow(index);
@@ -255,6 +222,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     setSelectedField(null)
   };
 
+  const startAnnotation = () => {
+    setExtractedData({});
+    setNoData(false);
+  }
+
   return (
     <div className={`${view === "General" ? "flex" : ""}`}>
       <DocViewer
@@ -270,6 +242,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
       />
       <ExtractedFields
         doc_id={doc_id}
+        status={status}
+        startAnnotation={startAnnotation}
         handleFieldClick={handleFieldClick}
         handleChangeView={handleChangeView}
         viewType={view}

@@ -17,7 +17,7 @@ const Home = () => {
             }
         };
         fetchUsername();
-    }, []);
+    }, [username]);
 
     return (
         <div>

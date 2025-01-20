@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'db_connect',
+    'custom_auth',
     'rest_framework'
 ]
 
@@ -77,16 +78,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'anno',
-#         'USER': 'postgres',
-#         'PASSWORD': 'XQg0irbcERV52guRPkT7',
-#         'HOST': 'tally-ai-doc-ai-inpar-database.c6slkutwkgrp.ap-south-1.rds.amazonaws.com',
-#         'PORT': '3306',
-#     }
-# }
 
 DATABASES = {
     'default': {
@@ -185,3 +176,13 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'tally.ai.doc.ai@gmail.com'
+EMAIL_HOST_PASSWORD = 'hqcdunhrvydjvnww'
+DEFAULT_FROM_EMAIL = 'tally.ai.doc.ai@gmail.com'
+
+FRONTEND_URL = 'http://localhost:3000'

@@ -16,14 +16,19 @@ const Triage = () => {
 function TriageContent() {
   const searchParams = useSearchParams();
   const doc_id = searchParams.get('doc_id');
-  const status = searchParams.get('status')
+  const status = searchParams.get('status');
+  const historyParam = searchParams.get('history');
+
+  // Parse history if it exists
+  const history = historyParam ? JSON.parse(historyParam) : null;
 
   return (
-    <main className=''>
-      <TriageHeader doc_id={doc_id} status={status}/>
-      <InteractiveSpace doc_id={doc_id} status={status}/>
+    <main>
+      <TriageHeader doc_id={doc_id} status={status} history={history} />
+      <InteractiveSpace doc_id={doc_id} status={status} />
     </main>
   );
 }
+
 
 export default withAuth(Triage);
