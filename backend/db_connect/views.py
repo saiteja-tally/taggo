@@ -14,14 +14,10 @@ from rest_framework.permissions import IsAuthenticated
 from PIL import Image
 import io, json
 import pytesseract
-import traceback
-# from reportlab.pdfgen import canvas
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 # Upload file to S3
 s3 = boto3.client('s3')
@@ -200,17 +196,22 @@ def save_json(request , status: str, id: str):
 def assign_annotation(request):
     if request.method == 'POST':
         try:
-            # print(request.data)
             annotation_id = request.data['id']
             user_id = request.data['user_id']
-            annotation = Annotation.objects.get(id=annotation_id)
-            assign_to_user = User.objects.get(id=user_id)
             assigned_by = request.user
+            annotation = Annotation.objects.get(id=annotation_id)
+            if user_id == None:
+                assign_to_user = None
+                history_message = f'Unassigned by {assigned_by.username}'
+            else:
+                assign_to_user = User.objects.get(id=user_id)
+                assigned_to_username = assign_to_user.username
+                history_message = f'assigned to {assigned_to_username} by {assigned_by.username}'
 
             annotation.assigned_to_user = assign_to_user
             ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
 
-            annotation.history.append(f'{ist_time}: assigned to {assign_to_user.username} by {assigned_by.username}')
+            annotation.history.append(f'{ist_time}: {history_message}')
             annotation.save()
 
             return JsonResponse({'status': 'success', 'message': f'Annotation {annotation_id} assigned to user {user_id}'}, safe=False)
@@ -291,4 +292,87 @@ def reject_annotation(request):
 
     except Exception as e:
         logger.error(f"Error rejecting annotation: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_next(request, id: str):
+    try:
+        current_annotation = Annotation.objects.get(id=id)
+        if request.user.is_superuser:
+            next_annotation = Annotation.objects.filter(inserted_time__lt=current_annotation.inserted_time).order_by('-inserted_time').first()
+        else:
+            next_annotation = Annotation.objects.filter(assigned_to_user=request.user, inserted_time__lt=current_annotation.inserted_time).order_by('-inserted_time').first()
+        
+        if next_annotation:
+            annotation_data = next_annotation.__dict__
+            if next_annotation.assigned_to_user_id:
+                try:
+                    user = User.objects.get(id=next_annotation.assigned_to_user_id)
+                    annotation_data['assigned_to_user'] = user.username
+                except User.DoesNotExist:
+                    annotation_data['assigned_to_user'] = None
+            else:
+                annotation_data['assigned_to_user'] = None
+            del annotation_data['_state']  # Remove the internal state field
+            return JsonResponse({'status': 'success', 'annotation': annotation_data}, safe=False)
+        return JsonResponse({'status': 'success', 'message': 'No more documents to label'}, safe=False)
+
+    except Annotation.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Annotation not found'}, status=404)
+
+    except Exception as e:
+        logger.error(f"Error retrieving next annotation: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])    
+def get_prev(request, id: str):
+    try:
+        current_annotation = Annotation.objects.get(id=id)
+        if request.user.is_superuser:
+            prev_annotation = Annotation.objects.filter(inserted_time__gt=current_annotation.inserted_time).order_by('inserted_time').first()
+        else:
+            prev_annotation = Annotation.objects.filter(assigned_to_user=request.user, inserted_time__gt=current_annotation.inserted_time).order_by('inserted_time').first()
+        
+        if prev_annotation:
+            annotation_data = prev_annotation.__dict__
+            if prev_annotation.assigned_to_user_id:
+                try:
+                    user = User.objects.get(id=prev_annotation.assigned_to_user_id)
+                    annotation_data['assigned_to_user'] = user.username
+                except User.DoesNotExist:
+                    annotation_data['assigned_to_user'] = None
+            else:
+                annotation_data['assigned_to_user'] = None
+            del annotation_data['_state']  # Remove the internal state field
+            return JsonResponse({'status': 'success', 'annotation': annotation_data}, safe=False)
+        return JsonResponse({'status': 'success', 'message': 'No more documents to label'}, safe=False)
+
+    except Annotation.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Annotation not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error retrieving previous annotation: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+
+def smart_assign(request):
+    try:
+        if not request.user.is_superuser:
+            return JsonResponse({'status': 'error', 'message': 'Only superusers can access this endpoint'}, status=403)
+
+        annotations = Annotation.objects.filter(status='uploaded', assigned_to_user=None)
+        users = User.objects.filter(groups__name='labellers').values('id', 'username')
+        user_index = 0
+
+        for annotation in annotations:
+            user_id = users[user_index]['id']
+            annotation.assigned_to_user_id = user_id
+            annotation.save()
+            user_index = (user_index + 1) % len(users)
+
+        return JsonResponse({'status': 'success', 'message': 'Annotations assigned successfully'}, safe=False)
+
+    except Exception as e:
+        logger.error(f"Error assigning annotations: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

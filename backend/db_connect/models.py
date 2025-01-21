@@ -21,4 +21,4 @@ class Annotation(models.Model):
     s3_label_key = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return f"Annotation {self.doc_id} - {self.status}"
+        return f"Annotation {self.id} - {self.status}"

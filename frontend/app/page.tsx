@@ -22,7 +22,7 @@ const Home = () => {
     return (
         <div>
             <HomeHeader username={username} />
-            <Submissions />
+            <Submissions username={username}/>
         </div>
     );
 }

@@ -21,6 +21,8 @@ const BACKEND_URLS = {
   set_password: `http://${hostIp}:${port}/set-password/`,
   smart_assign: `http://${hostIp}:${port}/smart_assign/`,
   reject_annotation: `http://${hostIp}:${port}/reject_annotation/`,
+  get_next: `http://${hostIp}:${port}/get_next`,
+  get_prev: `http://${hostIp}:${port}/get_prev`,
 };
 
 export default BACKEND_URLS;

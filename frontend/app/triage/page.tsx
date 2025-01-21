@@ -18,13 +18,14 @@ function TriageContent() {
   const doc_id = searchParams.get('doc_id');
   const status = searchParams.get('status');
   const historyParam = searchParams.get('history');
+  const username = searchParams.get('username');
 
   // Parse history if it exists
   const history = historyParam ? JSON.parse(historyParam) : null;
 
   return (
     <main>
-      <TriageHeader doc_id={doc_id} status={status} history={history} />
+      <TriageHeader doc_id={doc_id} status={status} history={history} username={username}/>
       <InteractiveSpace doc_id={doc_id} status={status} />
     </main>
   );

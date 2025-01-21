@@ -8,7 +8,10 @@ from .views import (
     assign_annotation,
     save_json,
     get_ocr_text,
-    reject_annotation
+    reject_annotation,
+    get_next,
+    get_prev,
+    smart_assign
 )
 
 urlpatterns = [
@@ -25,4 +28,7 @@ urlpatterns = [
     path("save_json/<str:status>/<str:id>/", save_json, name="save json"),
     path("get_ocr_text/", get_ocr_text, name="get ocr text"),
     path("reject_annotation/", reject_annotation, name="reject annotation"),
+    path("get_next/<str:id>/", get_next, name="get next"),
+    path("get_prev/<str:id>/", get_prev, name="get prev"),
+    path("smart_assign/", smart_assign, name="smart assign"),
 ]
