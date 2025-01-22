@@ -15,12 +15,6 @@ interface FileUploadEvent extends ChangeEvent<HTMLInputElement> {
 
 const HomeHeader = ({ username }: HomeHeaderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showLogout, setShowLogout] = useState<boolean>(false);
-
-  const handleLogout = (): void => {
-    localStorage.removeItem('access_token');
-    window.location.href = '/login';
-  };
 
   const handleFileUpload = async (event: FileUploadEvent): Promise<void> => {
     const files = event.target.files;
@@ -68,8 +62,8 @@ const HomeHeader = ({ username }: HomeHeaderProps) => {
           className="rounded-full"
         />
       </div>
-      <h1 className="text-2xl font-bold text-teal-900 sm:p-0 md:p-1 lg:p-2 xl:p-3">
-        Tally-AI Invoice Parsing (In-House Model)
+      <h1 className="text-3xl font-bold text-teal-900 sm:p-0 md:p-1 lg:p-2 xl:p-3">
+        Taggo
       </h1>
       <div className="flex items-center">
         <label

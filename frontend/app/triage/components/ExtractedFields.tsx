@@ -8,45 +8,45 @@ import ROIField from "./ROIField";
 import axiosInstance from "@/app/utils/axiosInstance";
 import BACKEND_URLS from "@/app/BackendUrls";
 
-const predefinedFields = [
-  "InvoiceDate",
-  "InvoiceNumber",
-  "BuyerAddress",
-  "BuyerContactNo",
-  "BuyerEmail",
-  "BuyerGSTIN",
-  "BuyerName",
-  "BuyerOrderDate",
-  "BuyerPAN",
-  "BuyerState",
-  "ConsigneeAddress",
-  "ConsigneeContactNo",
-  "ConsigneeEmail",
-  "ConsigneeGSTIN",
-  "ConsigneeName",
-  "ConsigneePAN",
-  "ConsigneeState",
-  "Destination",
-  "DispatchThrough",
-  "DocumentType",
-  "OrderNumber",
-  "OtherReference",
-  "PortofLoading",
-  "ReferenceNumber",
-  "SubAmount",
-  "SupplierAddress",
-  "SupplierContactNo",
-  "SupplierEmail",
-  "SupplierGSTIN",
-  "SupplierName",
-  "SupplierPAN",
-  "SupplierState",
-  "TermsofPayment",
-  "TotalAmount",
-  "Table",
-  "LedgerDetails",
-  "ROI"
-];
+const predefinedFields = {
+  "InvoiceDate": true,
+  "InvoiceNumber": true,
+  "SupplierName": true,
+  "SupplierAddress": true,
+  "SupplierContactNo": true,
+  "SupplierEmail": true,
+  "SupplierGSTIN": true,
+  "SupplierPAN": true,
+  "SupplierState": true,
+  "BuyerName": true,
+  "BuyerAddress": true,
+  "BuyerContactNo": true,
+  "BuyerEmail": false,
+  "BuyerGSTIN": false,
+  "BuyerOrderDate": false,
+  "BuyerPAN": true,
+  "BuyerState": true,
+  "ConsigneeName": true,
+  "ConsigneeAddress": true,
+  "ConsigneeContactNo": true,
+  "ConsigneeEmail": true,
+  "ConsigneeGSTIN": true,
+  "ConsigneePAN": true,
+  "ConsigneeState": true,
+  "Destination": false,
+  "DispatchThrough": false,
+  "DocumentType": false,
+  "OrderNumber": false,
+  "OtherReference": false,
+  "PortofLoading": false,
+  "ReferenceNumber": false,
+  "TermsofPayment": false,
+  "SubAmount": true,
+  "TotalAmount": true,
+  "Table": false,
+  "LedgerDetails": false,
+  "ROI": false
+};
 
 interface ExtractedFieldsProps {
   doc_id: string | null;
@@ -144,7 +144,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   useEffect(() => {
     const initialDisplayFields: DisplayFields = {};
 
-    predefinedFields.forEach((field) => {
+    Object.keys(predefinedFields).forEach((field) => {
       if (!extractedData[field]) {
         if (field === "Table" || field === "LedgerDetails" || field == "ROI") {
           extractedData[field] = [{}];
@@ -159,12 +159,13 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       if (field !== "Table" && field !== "LedgerDetails") {
         initialDisplayFields[field] =
           extractedData[field].text !== "" ||
-          extractedData[field].location.pageNo !== 0;
+          extractedData[field].location.pageNo !== 0 ||
+          predefinedFields[field as keyof typeof predefinedFields];
       }
     });
 
     setDisplayFields(initialDisplayFields);
-  }, [extractedData]);
+  }, []);
 
   const handleAddField = useCallback((fieldName: string) => {
     setDisplayFields((prevData) => ({
@@ -201,6 +202,8 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       ) {
         return (
           <SingleValuedField
+          status={status}
+
             key={fieldName}
             fieldName={fieldName}
             fieldValue={fieldValue}
@@ -322,6 +325,21 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
 
   }
 
+  const handleAccept = async () => {
+    try {
+      const response = await axiosInstance.post(BACKEND_URLS.accept_annotation, {
+        doc_id,
+      });
+      if (response.status === 200) {
+        console.log("Accepted annotation successfully");
+      } else {
+        console.error("Failed to accept annotation:", response.statusText);
+      }
+    } catch (error: any) {
+      console.error("Error accepting annotation:", error.response?.data.message || error);
+    }
+  }
+
   return (
     <div
       className={`bg-white bg-opacity-0 ${viewType === "General" ? "w-[30vw]" : "mt-2"
@@ -415,20 +433,19 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
             </div>
           </div>
         </div>)}
-      {(status === 'rejected' || !rejected) && <div>
+      {(status === 'labelled') && <div>
         <div className="p-4 flex justify-center space-x-4">
-          <input
-            type="text"
-            className="border rounded py-2 px-4"
-            placeholder="Reason"
-            value={reasonText}
-            onChange={(e) => setReasonText(e.target.value)}
-          />
           <button
             onClick={() => handleReject(reasonText)}
-            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             Reject
+          </button>
+          <button
+            onClick={() => handleAccept()}
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
+            Accept
           </button>
         </div>
       </div>}

@@ -23,6 +23,7 @@ const BACKEND_URLS = {
   reject_annotation: `http://${hostIp}:${port}/reject_annotation/`,
   get_next: `http://${hostIp}:${port}/get_next`,
   get_prev: `http://${hostIp}:${port}/get_prev`,
+  accept_annotation: `http://${hostIp}:${port}/accept_annotation/`,
 };
 
 export default BACKEND_URLS;

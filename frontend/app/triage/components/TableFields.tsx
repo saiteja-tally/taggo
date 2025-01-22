@@ -52,6 +52,31 @@ const TableFields: React.FC<TableFieldsProps> = ({
     });
   }, []);
 
+  interface CalculateTextWidth {
+    (text: string): number;
+  }
+
+  const calculateTextWidth: CalculateTextWidth = (text) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+      context.font = "16px Arial"; // Match the font style used in the textarea
+      return context.measureText(text).width;
+    }
+    return 0;
+  };
+
+  interface CalculateTextHeight {
+    (text: string): number;
+  }
+
+  const calculateTextHeight: CalculateTextHeight = (text) => {
+    const lines = text.split("\n"); // Split by newlines to count lines
+    const lineHeight = 10; // Approximate line height in pixels
+    return lines.length * lineHeight;
+  };
+
+
   const handleSelectAll = useCallback(
     (selectAll: boolean) => {
       const newDisplayCols = Object.keys(displayCols).reduce(
@@ -67,39 +92,37 @@ const TableFields: React.FC<TableFieldsProps> = ({
   );
 
   useEffect(() => {
-    let predefinedFields: string[] = [];
+    let predefinedFields: Record<string, boolean> = {};
     if (fieldName === "LedgerDetails") {
-      predefinedFields = ["LedgerName", "LedgerRate", "LedgerAmount"];
+      predefinedFields = { "LedgerName": true, "LedgerRate": true, "LedgerAmount": true };
     } else {
-      predefinedFields = [
-        "ItemBox",
-        "ItemName",
-        "ItemDescription",
-        "HSNSACCode",
-        "BilledQty",
-        "ActualQty",
-        "CGSTAmount",
-        "DiscountAmount",
-        "DiscountRate",
-        "IGSTAmount",
-        "ItemRate",
-        "ItemRateUOM",
-        "SGSTRate",
-        "SGSTAmount",
-        "CGSTRate",
-        "CGSTAmount",
-        "IGSTRate",
-        "IGSTAmount",
-        "TaxRate",
-        "TaxAmount",
-        "ItemAmount",
-      ];
+      predefinedFields = {
+        "ItemBox": true,
+        "ItemName": false,
+        "ItemDescription": false,
+        "HSNSACCode": true,
+        "BilledQty": false,
+        "ActualQty": false,
+        "DiscountAmount": false,
+        "DiscountRate": false,
+        "ItemRate": true,
+        "ItemRateUOM": false,
+        "SGSTRate": false,
+        "SGSTAmount": false,
+        "CGSTRate": false,
+        "CGSTAmount": false,
+        "IGSTRate": false,
+        "IGSTAmount": false,
+        "TaxRate": false,
+        "TaxAmount": false,
+        "ItemAmount": true,
+      };
     }
 
     const initialDisplayCols: DisplayCols = {};
 
     // Ensure all predefinedFields exist in every row, else add dummy value
-    for (const field of predefinedFields) {
+    for (const field of Object.keys(predefinedFields)) {
       fieldValue.forEach((row: any) => {
         if (!row[field]) {
           row[field] = {
@@ -110,12 +133,12 @@ const TableFields: React.FC<TableFieldsProps> = ({
       });
 
       initialDisplayCols[field] = fieldValue.some(
-        (row: any) => row[field]?.text !== ""
+        (row: any) => row[field]?.text !== "" || predefinedFields[field]
       );
     }
 
     setDisplayCols(initialDisplayCols);
-  }, [fieldName, fieldValue]);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -186,11 +209,10 @@ const TableFields: React.FC<TableFieldsProps> = ({
                 value && (
                   <th
                     key={fieldName}
-                    className={`px-2 text-left font-medium text-sm ${
-                      fieldName === currField
-                        ? "bg-cyan-300"
-                        : "bg-blue-500 text-white"
-                    }`}
+                    className={`px-2 text-left font-medium text-sm ${fieldName === currField
+                      ? "bg-cyan-300"
+                      : "bg-blue-500 text-white"
+                      }`}
                   >
                     {fieldName}
                   </th>
@@ -205,9 +227,8 @@ const TableFields: React.FC<TableFieldsProps> = ({
               className={`p-0 border-b ${index === currIndex ? "" : ""}`}
             >
               <td
-                className={`sticky left-0 ${
-                  index === currIndex ? "bg-cyan-300" : "bg-gray-300"
-                }`}
+                className={`sticky left-0 ${index === currIndex ? "bg-cyan-300" : "bg-gray-300"
+                  }`}
               >
                 <button
                   className={`px-3 text-xl font-bold rounded hover:bg-red-500 text-black focus:outline-none hover:text-white`}
@@ -239,19 +260,22 @@ const TableFields: React.FC<TableFieldsProps> = ({
                         );
                         changeCurr(index, colName);
                       }}
-                      className={`p-0 ${
-                        colName === currField && index === currIndex
-                          ? "bg-red-200"
-                          : ""
-                      }`}
+                      className={`p-0 ${colName === currField && index === currIndex
+                        ? "bg-red-200"
+                        : ""
+                        }`}
                     >
                       {colName !== "id" ? (
                         <div className="flex justify-content items-center">
                           <textarea
                             ref={textAreaRef}
                             value={row[colName]?.text || ""}
-                            className="p-2 m-1 h-10 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-auto resize"
-                            onChange={(e) =>
+                            className="p-2 m-1 text-xl rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-hidden resize-none"
+                            style={{
+                              width: `${Math.max(100, calculateTextWidth(row[colName]?.text || "") + 20)}px`,
+                              height: `${Math.max(40, calculateTextHeight(row[colName]?.text || "") + 20)}px`,
+                            }}
+                            onChange={(e) => {
                               handleNestedFieldChange(
                                 fieldName,
                                 index,
@@ -259,11 +283,12 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 e.target.value,
                                 row[colName]?.location,
                                 "update value"
-                              )
-                            }
+                              );
+                            }}
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
                           />
+
 
                           {row[colName]?.location?.pageNo !== 0 && (
                             <button

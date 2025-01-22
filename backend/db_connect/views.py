@@ -254,9 +254,20 @@ def get_ocr_text(request):
     try:
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
+            ltwh = json.loads(request.POST['ltwh'])
 
             # Use Pillow to open the uploaded image file
             image = Image.open(uploaded_file)
+
+            # get cordinates from normalized cordinates
+            width, height = image.size
+            left = ltwh[0] * width
+            top = ltwh[1] * height
+            right = left + ltwh[2] * width
+            bottom = top + ltwh[3] * height
+
+            image = image.crop((left, top, right, bottom))
+
             # Convert RGBA to RGB
             rgb_image = image.convert("RGB")
 
@@ -264,7 +275,9 @@ def get_ocr_text(request):
             rgb_image.save("ocr_crop.jpeg")
             # Apply OCR using pytesseract
             text = pytesseract.image_to_string(image)
-            logger.info(f"OCR text extracted: {text}")
+
+            text = text.strip()
+
             # Return the extracted text as JSON response
             return JsonResponse({'text': text})
 
@@ -276,7 +289,7 @@ def get_ocr_text(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def reject_annotation(request):
-    if not request.user.groups.filter(name='reviewers').exists():
+    if not request.user.groups.filter(name='reviewers').exists() or not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'Only reviewers can reject annotations'}, status=403)
 
     id = request.data['doc_id']
@@ -355,7 +368,8 @@ def get_prev(request, id: str):
         logger.error(f"Error retrieving previous annotation: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
-
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def smart_assign(request):
     try:
         if not request.user.is_superuser:
@@ -375,4 +389,25 @@ def smart_assign(request):
 
     except Exception as e:
         logger.error(f"Error assigning annotations: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_annotation(request):
+    if not request.user.groups.filter(name='reviewers').exists() or not request.user.is_superuser:
+        return JsonResponse({'status': 'error', 'message': 'Only reviewers can accept annotations'}, status=403)
+
+    id = request.data['doc_id']
+    try:
+        annotation = Annotation.objects.get(id=id)
+        annotation.status = 'done'
+        annotation.assigned_to_user = None
+        ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
+        annotation.history.append(f'{ist_time}: accepted by {request.user.username}')
+        annotation.save()
+        return JsonResponse({'status': 'success', 'message': 'Annotation accepted'}, safe=False)
+
+    except Exception as e:
+        logger.error(f"Error accepting annotation: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

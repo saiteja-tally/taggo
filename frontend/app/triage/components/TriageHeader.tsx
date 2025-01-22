@@ -119,7 +119,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
         <p className="m-1 text-lg font-semibold">Home</p>
       </Link>
 
-      <h1 className="text-2xl font-bold text-teal-900">InPar</h1>
+      <h1 className="text-2xl font-bold text-teal-900">Taggo</h1>
       <div className="flex items-center text-teal-900 relative">
         <div className="p-1 relative group">
           <button

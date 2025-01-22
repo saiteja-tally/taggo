@@ -11,7 +11,8 @@ from .views import (
     reject_annotation,
     get_next,
     get_prev,
-    smart_assign
+    smart_assign,
+    accept_annotation
 )
 
 urlpatterns = [
@@ -31,4 +32,5 @@ urlpatterns = [
     path("get_next/<str:id>/", get_next, name="get next"),
     path("get_prev/<str:id>/", get_prev, name="get prev"),
     path("smart_assign/", smart_assign, name="smart assign"),
+    path("accept_annotation/", accept_annotation, name="accept annotation"),
 ]

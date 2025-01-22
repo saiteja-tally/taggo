@@ -6,6 +6,7 @@ import PdfTools from "./PdfTools";
 import BACKEND_URLS from "@/app/BackendUrls";
 import { FaSpinner } from "react-icons/fa";
 import axiosInstance from "@/app/utils/axiosInstance";
+import './styles.css'; // Assuming this file contains the .no-select class
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -61,6 +62,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   // const [showScrollbar, setShowScrollbar] = useState<boolean>(false);
 
+
   const viewerLoc = viewerRef.current?.getBoundingClientRect();
 
   // Fetch PDF dimensions on initial load or file change
@@ -80,7 +82,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     };
 
     fetchPdfDimensions();
-  }, [file, viewType]);
+  }, [file]);
 
   // Adjust scale when PDF dimensions or viewer dimensions change
   useEffect(() => {
@@ -88,7 +90,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       const viewerWidth = viewerRef.current.clientWidth;
       setScale(viewerWidth / pdfDim.width);
     }
-  }, [pdfDim, viewerRef]);
+  }, [pdfDim, viewerRef, viewType]);
 
   useEffect(() => {
     if (boundingBoxRef.current) {
@@ -200,6 +202,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setDrawingBox(true);
+    document.body.classList.add("no-select"); // Disable text selection
     if (viewerLoc && !boxLocation) {
       setStartX(e.clientX - viewerLoc.left);
       setStartY(e.clientY - viewerLoc.top);
@@ -216,8 +219,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   };
 
   const handleMouseUp = async () => {
-    if (!boxLocation) {
+    if (!boxLocation && selectedField) {
       setDrawingBox(false);
+      document.body.classList.remove("no-select"); // Disable text selection
 
       if (viewerLoc) {
         // Calculate the scroll offset of the page div
@@ -265,63 +269,66 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         // Crop the selected area as an image
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
-        canvas.width = width;
-        canvas.height = height;
-        console.log(document.getElementsByTagName("canvas"))
+        
+        // No cropping needed, directly send the entire canvas
+        const canvasElement = document.getElementsByTagName("canvas")[0];
+        canvas.width = canvasElement.width;
+        canvas.height = canvasElement.height;
         context?.drawImage(
-          document.getElementsByTagName("canvas")[0],
-          left,
-          top,
-          width,
-          height,
+          canvasElement,
           0,
           0,
-          width,
-          height
+          canvasElement.width,
+          canvasElement.height,
+          0,
+          0,
+          canvasElement.width,
+          canvasElement.height
         );
         canvas.toBlob(async (blob) => {
           if (blob) {
-            // Send the image to the OCR endpoint
+            // Send the image and coordinates to the backend
             const formData = new FormData();
             formData.append("file", blob, "cropped_image.png");
+            formData.append("ltwh", JSON.stringify([scaledLeft, scaledTop, scaledWidth, scaledHeight]));
 
             try {
               const response = await axiosInstance.post(`${BACKEND_URLS.get_ocr_text}`,
-                formData,
-                {
-                  headers: {
-                    "Content-Type": "multipart/form-data",
-                  },
-                }
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
               );
               const data = await response.data;
               if (
-                selectedField != "Table" &&
-                selectedField != "LedgerDetails" &&
-                selectedField != "ROI"
+          selectedField != "Table" &&
+          selectedField != "LedgerDetails" &&
+          selectedField != "ROI"
               ) {
-                handleSingleValuedFieldChange(
-                  selectedField,
-                  data.text,
-                  null,
-                  "update value"
-                );
+          handleSingleValuedFieldChange(
+            selectedField,
+            data.text,
+            null,
+            "update value"
+          );
               } else {
-                handleNestedFieldChange(
-                  selectedField,
-                  selectedRow,
-                  colName,
-                  data.text,
-                  null,
-                  "update value"
-                );
+          handleNestedFieldChange(
+            selectedField,
+            selectedRow,
+            colName,
+            data.text,
+            null,
+            "update value"
+          );
               }
             } catch (error) {
               console.error("Error during OCR:", error);
             }
           }
         });
-      }
+            }
 
       setStartX(0);
       setStartY(0);

@@ -1,6 +1,7 @@
 import React from "react";
 
 interface SingleValuedFieldProps {
+  status: string | null,
   fieldName: string;
   fieldValue: Record<string, any>;
   selectedField: string | null;
@@ -19,6 +20,7 @@ interface SingleValuedFieldProps {
 }
 
 const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
+  status,
   fieldName,
   fieldValue,
   selectedField,
@@ -27,6 +29,15 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
 }) => {
 
   // if (fieldValue.location?.pageNo ==0 && fieldValue.text == "") return;
+
+  interface AdjustTextareaHeight {
+    (textarea: HTMLTextAreaElement): void;
+  }
+
+  const adjustTextareaHeight: AdjustTextareaHeight = (textarea) => {
+    textarea.style.height = "auto"; // Reset height to auto to calculate the actual scroll height
+    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to the scroll height
+  };
 
   return (
     <div
@@ -45,7 +56,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           {fieldName}
         </p>
 
-        {fieldValue.location?.pageNo !== 0 && (
+        {fieldValue.location?.pageNo !== 0 && (status == "uploaded" || status == "pre-labelled") && (
           <button
             onClick={(e) =>
               handleSingleValuedFieldChange(
@@ -89,10 +100,11 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
       </div>
 
       <textarea
-        className={`text-gray-800 bg-blue-50 rounded-md border border-blue-300 p-2 focus:outline-none w-full ${selectedField === fieldName ? "border border-red-300" : ""
+        className={`text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full ${selectedField === fieldName ? "border border-red-300" : ""
           }`}
         value={fieldValue.text}
-        placeholder="AI couldn't extract"
+        placeholder=""
+        disabled={status != "uploaded" && status != "pre-labelled"}
         onChange={(e) => {
           handleSingleValuedFieldChange(
             fieldName,
@@ -100,10 +112,15 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
             fieldValue.location,
             "update value"
           );
+          adjustTextareaHeight(e.target); // Adjust height dynamically
         }}
-        rows={1}
+        rows={1} // Default row count
+        ref={(el) => {
+          if (el) adjustTextareaHeight(el); // Adjust height on initial render
+        }}
         wrap="soft"
       />
+
 
     </div>
   );
