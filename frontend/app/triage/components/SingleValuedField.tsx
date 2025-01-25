@@ -1,4 +1,5 @@
 import React from "react";
+import { BiComment } from "react-icons/bi";
 
 interface SingleValuedFieldProps {
   status: string | null,
@@ -55,8 +56,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
         <p className="font-semibold m-1 text-indigo-700 text-center">
           {fieldName}
         </p>
-
-        {fieldValue.location?.pageNo !== 0 && (status == "uploaded" || status == "pre-labelled") && (
+        {(status == "uploaded" || status == "pre-labelled") ? fieldValue.location?.pageNo !== 0 && (
           <button
             onClick={(e) =>
               handleSingleValuedFieldChange(
@@ -96,7 +96,32 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
               </div>
             )}
           </button>
-        )}
+        ) :
+          (selectedField === fieldName) ? (
+            <textarea
+              className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
+              value={fieldValue.comment || ""}
+              placeholder="Add comment"
+              onChange={(e) => {
+                handleSingleValuedFieldChange(
+                  fieldName,
+                  e.target.value,
+                  null,
+                  "add comment"
+                );
+                adjustTextareaHeight(e.target);
+              }
+              }
+              rows={1} // Default row count
+              ref={(el) => {
+                if (el) adjustTextareaHeight(el); // Adjust height on initial render
+              }}
+            />
+          ) : fieldValue.comment ? (
+            <div className="flex items-center">
+              <BiComment className="text-gray-700" />
+            </div>
+          ) : null}
       </div>
 
       <textarea
@@ -120,8 +145,6 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
         }}
         wrap="soft"
       />
-
-
     </div>
   );
 };

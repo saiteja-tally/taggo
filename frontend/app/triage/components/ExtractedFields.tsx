@@ -81,7 +81,7 @@ interface ExtractedFieldsProps {
   isLoading: boolean;
   nodata: boolean;
   dataChanged: boolean;
-  handleSave: () => void;
+  handleSave: (status: string) => void;
   handleDiscard: () => void;
 }
 
@@ -202,8 +202,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       ) {
         return (
           <SingleValuedField
-          status={status}
-
+            status={status}
             key={fieldName}
             fieldName={fieldName}
             fieldValue={fieldValue}
@@ -275,45 +274,19 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
     []
   );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.key === "s") {
-        event.preventDefault();
-        if (dataChanged) {
-          handleSave();
-        }
-      } else if (event.altKey && event.key === "d") {
-        event.preventDefault();
-        if (dataChanged) {
-          handleDiscard();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [dataChanged, handleSave, handleDiscard]);
-
-  const handleReject = async (reason: string) => {
-    if (!reason) {
-      alert("Please provide a reason for rejection.");
-      return;
-    }
+  const handleReject = async () => {
     try {
       const response = await axiosInstance.post(BACKEND_URLS.reject_annotation, {
         doc_id,
-        reason,
+        
       });
       if (response.status === 200) {
         // Reset the reason text
         setReasonText("");
         setRejected(true);
         console.log("Rejected annotation successfully");
-      } 
-      
+      }
+
       else {
         console.error("Failed to reject annotation:", response.statusText);
       }
@@ -404,7 +377,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         (<div className="p-4 flex justify-center space-x-4">
           <div className="relative group">
             <button
-              onClick={handleSave}
+              onClick={() => handleSave("labelled")}
               disabled={!dataChanged}
               className={`${dataChanged
                 ? "bg-blue-500 hover:bg-blue-700"
@@ -436,14 +409,20 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       {(status === 'labelled') && <div>
         <div className="p-4 flex justify-center space-x-4">
           <button
-            onClick={() => handleReject(reasonText)}
-            className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
+            onClick={() => handleReject()}
+            disabled={!dataChanged}
+            className={`${dataChanged
+              ? "bg-red-500 hover:bg-red-700"
+              : "bg-gray-300 text-gray-400 cursor-not-allowed"
+              } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300`}
           >
             Reject
           </button>
           <button
             onClick={() => handleAccept()}
             className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
+            disabled={dataChanged}
+            
           >
             Accept
           </button>

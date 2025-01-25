@@ -12,7 +12,8 @@ from .views import (
     get_next,
     get_prev,
     smart_assign,
-    accept_annotation
+    accept_annotation,
+    get_smart_assigin_data
 )
 
 urlpatterns = [
@@ -33,4 +34,6 @@ urlpatterns = [
     path("get_prev/<str:id>/", get_prev, name="get prev"),
     path("smart_assign/", smart_assign, name="smart assign"),
     path("accept_annotation/", accept_annotation, name="accept annotation"),
+    path('get_smart_assign_data/', get_smart_assigin_data, name='get_user_groups'),
+
 ]

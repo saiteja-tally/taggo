@@ -14,6 +14,9 @@ from rest_framework.permissions import IsAuthenticated
 from PIL import Image
 import io, json
 import pytesseract
+from django.contrib.auth.models import Group
+from rest_framework import status
+from django.db.models import Count, Q
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -145,7 +148,10 @@ def get_json(request, status: str, id: str):
         
         elif status == 'labelled':
             bucket = settings.S3_LABEL_BUCKET
-            
+
+        elif status == 'done':
+            bucket = settings.S3_LABEL_BUCKET
+
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
 
@@ -181,6 +187,7 @@ def save_json(request , status: str, id: str):
         # update annotation record
         annotation = Annotation.objects.get(id=id)
         annotation.status = status
+        annotation.assigned_to_user = None
         ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
         annotation.history.append(f'{ist_time}: {status} by {user}')
         annotation.save()
@@ -371,21 +378,31 @@ def get_prev(request, id: str):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def smart_assign(request):
+    status = request.data['status']
+    user_group = request.data['userGroup']
+    percentage = request.data['percentage']
     try:
         if not request.user.is_superuser:
             return JsonResponse({'status': 'error', 'message': 'Only superusers can access this endpoint'}, status=403)
 
-        annotations = Annotation.objects.filter(status='uploaded', assigned_to_user=None)
-        users = User.objects.filter(groups__name='labellers').values('id', 'username')
+        annotations = Annotation.objects.filter(status=status, assigned_to_user=None)
+        users = User.objects.filter(groups__name=user_group).values('id', 'username')
+        user_count = len(users)
+        if user_count == 0:
+            return JsonResponse({'status': 'error', 'message': 'No users found in the specified group'}, status=404)
+
+        annotations_to_assign = int(len(annotations) * (percentage / 100))
         user_index = 0
 
-        for annotation in annotations:
+        for annotation in annotations[:annotations_to_assign]:
             user_id = users[user_index]['id']
             annotation.assigned_to_user_id = user_id
+            ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
+            annotation.history.append(f'{ist_time}: assigned to {users[user_index]["username"]} by {request.user.username}(smart assign)')
             annotation.save()
-            user_index = (user_index + 1) % len(users)
+            user_index = (user_index + 1) % user_count
 
-        return JsonResponse({'status': 'success', 'message': 'Annotations assigned successfully'}, safe=False)
+        return JsonResponse({'status': 'success', 'message': f'{annotations_to_assign} annotations assigned successfully'}, safe=False)
 
     except Exception as e:
         logger.error(f"Error assigning annotations: {e}")
@@ -395,7 +412,7 @@ def smart_assign(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def accept_annotation(request):
-    if not request.user.groups.filter(name='reviewers').exists() or not request.user.is_superuser:
+    if not request.user.groups.filter(name='reviewers').exists() and not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'Only reviewers can accept annotations'}, status=403)
 
     id = request.data['doc_id']
@@ -411,3 +428,31 @@ def accept_annotation(request):
     except Exception as e:
         logger.error(f"Error accepting annotation: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@permission_classes([IsAuthenticated])
+def get_smart_assigin_data(request):
+    all_groups = Group.objects.all().values('name', 'user__username')
+    groups_with_users = {}
+    for group in all_groups:
+        group_name = group['name']
+        user_name = group['user__username']
+        if group_name not in groups_with_users:
+            groups_with_users[group_name] = []
+        groups_with_users[group_name].append(user_name)
+
+
+    annotation_status_counts = (
+        Annotation.objects.values('status')
+        .annotate(
+            total_count=Count('status'),
+            unassigned_count=Count('status', filter=Q(assigned_to_user=None))
+        )
+        .order_by('status')
+    )
+    status_counts = {
+        item['status']: f"{item['unassigned_count']}/{item['total_count']}"
+        for item in annotation_status_counts
+    }
+
+    return JsonResponse({"groups": groups_with_users, "status": status_counts}, status=status.HTTP_200_OK)

@@ -35,6 +35,9 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     location: Record<string, any> | null,
     instruction: string
   ) => {
+
+    console.log(fieldName, value)
+
     if (!fieldName) {
       return;
     }
@@ -59,6 +62,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
           : { pageNo: 0, ltwh: [0, 0, 0, 0] };
 
         setBoxLocation(location);
+      }
+      if (instruction === "add comment" || instruction === "del comment") {
+        currentLevel[fieldLevels[fieldLevels.length - 1]].comment = value
+          ? value
+          : "";
       }
       return newData;
     });
@@ -148,11 +156,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     setDataChanged(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (status: string) => {
     console.log("save-data", extractedData);
     try {
       const response = await axiosInstance.post(
-        `${BACKEND_URLS.save_json}/labelled/${doc_id}/`,
+        `${BACKEND_URLS.save_json}/${status}/${doc_id}/`,
         JSON.stringify(extractedData)
       );
 

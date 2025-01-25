@@ -3,26 +3,34 @@ import { useEffect, useState } from 'react';
 import Submissions from './components/Submissions';
 import HomeHeader from './components/HomeHeader';
 import withAuth from './utils/withAuth';
-import getUsernameFromToken from './utils/getUsernameFromToken';
+import axiosInstance from './utils/axiosInstance';
 
 const Home = () => {
 
-    const [username, setUsername] = useState<string | null>(null);
+    interface UserData {
+        username: string;
+        email: string;
+        first_name: string;
+        last_name: string;
+        date_joined: string;
+        is_superuser: boolean;
+        groups: string[];
+    }
+
+    const [userData, setUserData] = useState<UserData | null>(null);
 
     useEffect(() => {
-        const fetchUsername = async () => {
-            const username = await getUsernameFromToken();
-            if (username) {
-                setUsername(username);
-            }
+        const fetchData = async () => {
+            const response = await axiosInstance.get('/get_user_data');
+            setUserData(response.data);
         };
-        fetchUsername();
-    }, [username]);
+        fetchData();
+    }, []);
 
     return (
         <div>
-            <HomeHeader username={username} />
-            <Submissions username={username}/>
+            <HomeHeader userData={userData} />
+            <Submissions userData={userData}/>
         </div>
     );
 }

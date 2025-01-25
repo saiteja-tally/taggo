@@ -6,14 +6,20 @@ import axiosInstance from "../utils/axiosInstance";
 import AccountDetails from "../utils/AccountDetails";
 
 interface HomeHeaderProps {
-  username: string | null;
+  userData: {
+    username: string;
+    email: string;
+    groups: string[];
+    is_superuser: boolean;
+  } | null;
 }
+
 
 interface FileUploadEvent extends ChangeEvent<HTMLInputElement> {
   target: HTMLInputElement & EventTarget;
 }
 
-const HomeHeader = ({ username }: HomeHeaderProps) => {
+const HomeHeader = ({ userData }: HomeHeaderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleFileUpload = async (event: FileUploadEvent): Promise<void> => {
@@ -69,21 +75,21 @@ const HomeHeader = ({ username }: HomeHeaderProps) => {
         <label
           htmlFor="file-upload"
           className={`cursor-pointer bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl text-black sm:p-0 md:p-1 lg:p-2 xl:p-3 rounded-xl flex items-center transition duration-100 ${isLoading ? "opacity-50 pointer-events-none" : ""
-            }`}
+        }`}
         >
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6 mr-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            ></path>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        ></path>
           </svg>
           {isLoading ? "Uploading..." : "Upload File"}
         </label>
@@ -94,8 +100,7 @@ const HomeHeader = ({ username }: HomeHeaderProps) => {
           className="hidden"
           onChange={handleFileUpload}
         />
-        <AccountDetails username={username} />
-
+        {userData && <AccountDetails username={userData.username} />}
       </div>
     </div>
   );

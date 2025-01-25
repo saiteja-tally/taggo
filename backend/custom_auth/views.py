@@ -7,6 +7,10 @@ from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import serializers
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+
 
 def get_username_from_user_id(request, user_id):
     # Try to get the user object by user_id, or return a 404 if not found
@@ -34,4 +38,31 @@ class SetPasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response({"success": "Password set successfully"}, status=status.HTTP_200_OK)
+
+
+# Serializer for User Data
+class UserSerializer(serializers.ModelSerializer):
+    groups = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'date_joined', 'groups']
+
+
+@permission_classes([IsAuthenticated])
+class UserDataView(APIView):
+    def get(self, request):
+        user_data = UserSerializer(request.user).data
+        user_data = {
+            "username": request.user.username,
+            "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "date_joined": request.user.date_joined,
+            "is_superuser": request.user.is_superuser,
+        }
+        user_groups = request.user.groups.values_list('name', flat=True)
+        user_data["groups"] = list(user_groups)
+        return Response(user_data, status=status.HTTP_200_OK)
+    
 
