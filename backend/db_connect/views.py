@@ -97,7 +97,16 @@ def upload_document(request):
                 annotation.s3_file_key = s3_file_key
                 annotation.save()
 
+                
+                # send message to SQS
+                sqs = boto3.client('sqs')
+                sqs.send_message(
+                    QueueUrl=settings.SQS_PRE_LABEL_QUEUE_URL,
+                    MessageBody=json.dumps({'id': str(annotation.id),"s3_doc_bucket": settings.S3_DOC_BUCKET, 's3_file_key': s3_file_key})
+                )
+
                 logger.info(f"File '{uploaded_file.name}' uploaded successfully by '{uploader}'")
+                
                 return JsonResponse({
                     'status': 'success',
                     'message': f"File '{uploaded_file.name}' uploaded successfully.",
@@ -167,14 +176,14 @@ def get_json(request, status: str, id: str):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def save_json(request , status: str, id: str):
     try:
         json_data = request.body.decode('utf-8')
         if status == 'pre-labelled':
             user = 'inhouse-model'
             bucket = settings.S3_PRE_LABEL_BUCKET
-        elif status == 'labelled':
+        elif status == 'labelled' or status == 'accepted':
             user = request.user.username
             bucket = settings.S3_LABEL_BUCKET
         else:
@@ -260,6 +269,7 @@ def get_users(request):
 def get_ocr_text(request):
     try:
         if request.method == 'POST' and 'file' in request.FILES:
+            start_time = datetime.now()
             uploaded_file = request.FILES['file']
             ltwh = json.loads(request.POST['ltwh'])
 
@@ -284,6 +294,10 @@ def get_ocr_text(request):
             text = pytesseract.image_to_string(image)
 
             text = text.strip()
+
+            end_time = datetime.now()
+
+            logger.info(f"OCR completed in {end_time - start_time}")
 
             # Return the extracted text as JSON response
             return JsonResponse({'text': text})

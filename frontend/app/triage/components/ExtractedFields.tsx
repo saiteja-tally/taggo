@@ -274,45 +274,6 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
     []
   );
 
-  const handleReject = async () => {
-    try {
-      const response = await axiosInstance.post(BACKEND_URLS.reject_annotation, {
-        doc_id,
-        
-      });
-      if (response.status === 200) {
-        // Reset the reason text
-        setReasonText("");
-        setRejected(true);
-        console.log("Rejected annotation successfully");
-      }
-
-      else {
-        console.error("Failed to reject annotation:", response.statusText);
-      }
-    }
-    catch (error: any) {
-      console.error("Error rejecting annotation:", error.response?.data.message || error)
-    }
-
-
-  }
-
-  const handleAccept = async () => {
-    try {
-      const response = await axiosInstance.post(BACKEND_URLS.accept_annotation, {
-        doc_id,
-      });
-      if (response.status === 200) {
-        console.log("Accepted annotation successfully");
-      } else {
-        console.error("Failed to accept annotation:", response.statusText);
-      }
-    } catch (error: any) {
-      console.error("Error accepting annotation:", error.response?.data.message || error);
-    }
-  }
-
   return (
     <div
       className={`bg-white bg-opacity-0 ${viewType === "General" ? "w-[30vw]" : "mt-2"
@@ -409,7 +370,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       {(status === 'labelled') && <div>
         <div className="p-4 flex justify-center space-x-4">
           <button
-            onClick={() => handleReject()}
+            onClick={() => handleSave("rejected")}
             disabled={!dataChanged}
             className={`${dataChanged
               ? "bg-red-500 hover:bg-red-700"
@@ -419,7 +380,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
             Reject
           </button>
           <button
-            onClick={() => handleAccept()}
+            onClick={() => handleSave("accepted")}
             className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
             disabled={dataChanged}
             

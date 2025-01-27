@@ -36,8 +36,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     instruction: string
   ) => {
 
-    console.log(fieldName, value)
-
     if (!fieldName) {
       return;
     }

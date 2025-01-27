@@ -97,7 +97,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
             )}
           </button>
         ) :
-          (selectedField === fieldName) ? (
+          (selectedField === fieldName && status != 'accepted') ? (
             <textarea
               className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
               value={fieldValue.comment || ""}

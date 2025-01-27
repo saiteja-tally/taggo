@@ -202,8 +202,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setDrawingBox(true);
-    document.body.classList.add("no-select"); // Disable text selection
     if (viewerLoc && !boxLocation) {
+      document.body.classList.add("no-select");
       setStartX(e.clientX - viewerLoc.left);
       setStartY(e.clientY - viewerLoc.top);
       setEndX(e.clientX - viewerLoc.left);

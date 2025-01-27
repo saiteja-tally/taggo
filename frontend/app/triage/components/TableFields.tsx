@@ -52,31 +52,6 @@ const TableFields: React.FC<TableFieldsProps> = ({
     });
   }, []);
 
-  interface CalculateTextWidth {
-    (text: string): number;
-  }
-
-  const calculateTextWidth: CalculateTextWidth = (text) => {
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    if (context) {
-      context.font = "16px Arial"; // Match the font style used in the textarea
-      return context.measureText(text).width;
-    }
-    return 0;
-  };
-
-  interface CalculateTextHeight {
-    (text: string): number;
-  }
-
-  const calculateTextHeight: CalculateTextHeight = (text) => {
-    const lines = text.split("\n"); // Split by newlines to count lines
-    const lineHeight = 10; // Approximate line height in pixels
-    return lines.length * lineHeight;
-  };
-
-
   const handleSelectAll = useCallback(
     (selectAll: boolean) => {
       const newDisplayCols = Object.keys(displayCols).reduce(
@@ -140,6 +115,30 @@ const TableFields: React.FC<TableFieldsProps> = ({
     setDisplayCols(initialDisplayCols);
   }, []);
 
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = "auto"; // Reset height to auto to calculate the actual scroll height
+    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to the scroll height
+  };
+
+  const adjustTextareaWidth = (textarea: HTMLTextAreaElement) => {
+    textarea.style.width = "auto"; // Reset width to auto to calculate the actual scroll width
+    textarea.style.width = `${textarea.scrollWidth}px`; // Set width to the scroll width
+  };
+
+  interface CalculateTextWidth {
+    (text: string): number;
+  }
+
+  const calculateTextWidth: CalculateTextWidth = (text) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+      context.font = "16px Arial"; // Match the font style used in the textarea
+      return context.measureText(text).width;
+    }
+    return 0;
+  };
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (currIndex === null || currField === null || textAreaFocused.current)
@@ -193,7 +192,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
   }, [handleKeyDown]);
 
   return (
-    <div className="h-[25vh] overflow-auto">
+    <div className="h-[25vh] overflow-auto sm:text-xs md:text-xs lg:text-lg xl:text-lg">
       <table className="min-w-full bg-white">
         <thead className="sticky top-0 z-10">
           <tr className="">
@@ -268,12 +267,10 @@ const TableFields: React.FC<TableFieldsProps> = ({
                       {colName !== "id" ? (
                         <div className="flex justify-content items-center">
                           <textarea
-                            ref={textAreaRef}
                             value={row[colName]?.text || ""}
-                            className="p-2 m-1 text-xl rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-hidden resize-none"
+                            className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-hidden resize-none"
                             style={{
                               width: `${Math.max(100, calculateTextWidth(row[colName]?.text || "") + 20)}px`,
-                              height: `${Math.max(40, calculateTextHeight(row[colName]?.text || "") + 20)}px`,
                             }}
                             onChange={(e) => {
                               handleNestedFieldChange(
@@ -284,12 +281,15 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 row[colName]?.location,
                                 "update value"
                               );
+                              adjustTextareaHeight(e.target);
+                            }}
+                            rows={1} // Default row count
+                            ref={(el) => {
+                              if (el) adjustTextareaHeight(el); // Adjust height on initial render
                             }}
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
                           />
-
-
                           {row[colName]?.location?.pageNo !== 0 && (
                             <button
                               onClick={() =>

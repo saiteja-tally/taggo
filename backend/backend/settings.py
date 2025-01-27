@@ -133,6 +133,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 S3_DOC_BUCKET = 'tally-ai-doc-ai-taggo-documents'
+SQS_PRE_LABEL_QUEUE_URL = 'https://sqs.ap-south-1.amazonaws.com/381491826341/tally-ai-doc-ai-taggo-pre-label-queue'
 S3_PRE_LABEL_BUCKET = 'tally-ai-doc-ai-taggo-pre-labels'
 S3_LABEL_BUCKET = 'tally-ai-doc-ai-taggo-labels'
 
