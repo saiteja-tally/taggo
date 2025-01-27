@@ -278,13 +278,17 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                   {item.status}
                 </Link>
               </div>
-              {(item.id == hoveredRowID) && (
+              {(item.id == hoveredRowID) ? (
                 <div className="text-blue-500">
                   {item.history.map((instance, index) => (
                     <div key={index} className="flex justify-between">
                       <p className="text-sm">{instance}</p>
                     </div>
                   ))}
+                </div>
+              ): item.history.length > 0 && (
+                <div className="text-blue-500">
+                  <p className="text-sm">{item.history[item.history.length - 1]}</p>
                 </div>
               )}
             </div>

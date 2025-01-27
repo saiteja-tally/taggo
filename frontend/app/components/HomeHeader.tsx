@@ -25,36 +25,38 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
   const handleFileUpload = async (event: FileUploadEvent): Promise<void> => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const file = files[0];
-      const formData = new FormData();
-      formData.append("document", file);
+      setIsLoading(true); // Set loading state to true
 
-      try {
-        setIsLoading(true); // Set loading state to true
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("document", file);
 
-        const response = await axiosInstance.post(
-          BACKEND_URLS.upload_document,
-          formData, // Pass FormData directly
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
+        try {
+
+          const response = await axiosInstance.post(
+            BACKEND_URLS.upload_document,
+            formData, // Pass FormData directly
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (response.status === 200) {
+            console.log("File uploaded successfully");
+          } else {
+            console.error("Failed to upload file:", response.statusText);
           }
-        );
-
-        if (response.status === 200) {
-          console.log("File uploaded successfully");
-          window.location.reload(); // Reload the page
-        } else {
-          console.error("Failed to upload file:", response.statusText);
-        }
-      } catch (error: any) {
-        console.error("Error during file upload:", error.response?.data.message || error.message);
-        alert("Error during file upload: " + (error.response?.data.message || error.message));
-      } finally {
-        setIsLoading(false); // Set loading state back to false
+        } catch (error: any) {
+          console.error("Error during file upload:", error.response?.data.message || error.message);
+          alert("Error during file upload: " + (error.response?.data.message || error.message));
+        } 
       }
+        setIsLoading(false); // Set loading state back to false
     }
+    window.location.reload();
   };
 
   return (
@@ -91,11 +93,12 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
           d="M12 6v6m0 0v6m0-6h6m-6 0H6"
         ></path>
           </svg>
-          {isLoading ? "Uploading..." : "Upload File"}
+          {isLoading ? "Uploading..." : "Upload Files"}
         </label>
         <input
           id="file-upload"
           type="file"
+          multiple
           accept=".pdf, .doc, .docx, .jpeg, .png, .jpg"
           className="hidden"
           onChange={handleFileUpload}

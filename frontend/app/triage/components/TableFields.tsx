@@ -115,28 +115,18 @@ const TableFields: React.FC<TableFieldsProps> = ({
     setDisplayCols(initialDisplayCols);
   }, []);
 
-  const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = "auto"; // Reset height to auto to calculate the actual scroll height
-    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to the scroll height
+
+  const adjustTextareaSize = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = "auto"; // Reset to calculate scrollHeight
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  
+    textarea.style.width = "auto"; // Reset to calculate scrollWidth
+    textarea.style.width = `${textarea.scrollWidth}px`;
   };
 
-  const adjustTextareaWidth = (textarea: HTMLTextAreaElement) => {
-    textarea.style.width = "auto"; // Reset width to auto to calculate the actual scroll width
-    textarea.style.width = `${textarea.scrollWidth}px`; // Set width to the scroll width
-  };
 
-  interface CalculateTextWidth {
-    (text: string): number;
-  }
-
-  const calculateTextWidth: CalculateTextWidth = (text) => {
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    if (context) {
-      context.font = "16px Arial"; // Match the font style used in the textarea
-      return context.measureText(text).width;
-    }
-    return 0;
+  const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    adjustTextareaSize(event.target);
   };
 
   const handleKeyDown = useCallback(
@@ -208,7 +198,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                 value && (
                   <th
                     key={fieldName}
-                    className={`px-2 text-left font-medium text-sm ${fieldName === currField
+                    className={`px-2 text-left font-medium ${fieldName === currField
                       ? "bg-cyan-300"
                       : "bg-blue-500 text-white"
                       }`}
@@ -269,10 +259,9 @@ const TableFields: React.FC<TableFieldsProps> = ({
                           <textarea
                             value={row[colName]?.text || ""}
                             className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-hidden resize-none"
-                            style={{
-                              width: `${Math.max(100, calculateTextWidth(row[colName]?.text || "") + 20)}px`,
-                            }}
+                            ref={textAreaRef}
                             onChange={(e) => {
+                              handleInputChange;
                               handleNestedFieldChange(
                                 fieldName,
                                 index,
@@ -280,13 +269,9 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 e.target.value,
                                 row[colName]?.location,
                                 "update value"
-                              );
-                              adjustTextareaHeight(e.target);
+                              )
                             }}
-                            rows={1} // Default row count
-                            ref={(el) => {
-                              if (el) adjustTextareaHeight(el); // Adjust height on initial render
-                            }}
+                            rows={1}
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
                           />

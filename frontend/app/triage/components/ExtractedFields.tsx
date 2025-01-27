@@ -5,8 +5,8 @@ import ToggleView from "./ToggleView";
 import { FaExclamationCircle } from "react-icons/fa";
 import AddField from "./AddField";
 import ROIField from "./ROIField";
-import axiosInstance from "@/app/utils/axiosInstance";
-import BACKEND_URLS from "@/app/BackendUrls";
+import { FaSpinner } from "react-icons/fa";
+
 
 const predefinedFields = {
   "InvoiceDate": true,
@@ -112,37 +112,15 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   const isEmptyObject = (obj: any) =>
     Object.keys(obj).length === 0 && obj.constructor === Object;
 
-  if (extractedData == null) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
-        <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
-        <p className="text-xl text-blue-600 mb-4">No data available</p>
-        <div className="space-x-4">
-          <button
-            onClick={() => startAnnotation()}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Annotate
-          </button>
-        </div>
-      </div>
-    );
-  }
-  // else if (isEmptyObject(extractedData)) {
-  //   return (
-  //     <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
-  //       <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
-  //       <p className="text-xl text-blue-600">AI failed to extract any field</p>
-  //     </div>
-  //   );
-  // }
-
   const [displayFields, setDisplayFields] = useState<DisplayFields>({});
-  const [reasonText, setReasonText] = useState<string>("");
-  const [rejected, setRejected] = useState<boolean>(false);
 
   useEffect(() => {
     const initialDisplayFields: DisplayFields = {};
+
+    if (extractedData == null) {
+      return;
+    }
+
 
     Object.keys(predefinedFields).forEach((field) => {
       if (!extractedData[field]) {
@@ -165,7 +143,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
     });
 
     setDisplayFields(initialDisplayFields);
-  }, []);
+  }, [extractedData]);
 
   const handleAddField = useCallback((fieldName: string) => {
     setDisplayFields((prevData) => ({
@@ -279,12 +257,10 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       className={`bg-white bg-opacity-0 ${viewType === "General" ? "w-[30vw]" : "mt-2"
         } text-center font-mono`}
     >
-      {isLoading && <p className="text-blue-500 p-1">Loading...</p>}
-      {nodata && (
-        <div>
-          <p className="text-red-600">No Data Extracted</p>
-        </div>
-      )}
+      {isLoading && <div className="flex items-center justify-center h-screen">
+              <FaSpinner className="animate-spin text-4xl text-blue-600" />{" "}
+              {/* Rotating spinner */}
+            </div>}
       <div
         className={`${viewType === "General"
           ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4 order-last"
@@ -329,10 +305,23 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         className={`${viewType === "General" ? "h-[80vh] overflow-y-auto" : ""
           } border shadow-inner`}
       >
-        {extractedData &&
+        {extractedData ?
           Object.entries(extractedData).map(([fieldName, fieldValue]) =>
             renderField(fieldName, fieldValue)
-          )}
+          ) :
+          !isLoading &&
+          <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
+            <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
+            <p className="text-xl text-blue-600 mb-4">No data available</p>
+            <div className="space-x-4">
+              <button
+                onClick={() => startAnnotation()}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Annotate
+              </button>
+            </div>
+          </div>}
       </div>
       {(status === "uploaded" || status === 'pre-labelled') &&
         (<div className="p-4 flex justify-center space-x-4">
@@ -383,7 +372,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
             onClick={() => handleSave("accepted")}
             className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
             disabled={dataChanged}
-            
+
           >
             Accept
           </button>

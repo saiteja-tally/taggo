@@ -29,8 +29,6 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
   handleSingleValuedFieldChange,
 }) => {
 
-  // if (fieldValue.location?.pageNo ==0 && fieldValue.text == "") return;
-
   interface AdjustTextareaHeight {
     (textarea: HTMLTextAreaElement): void;
   }
@@ -54,7 +52,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
     >
       <div className="flex items-center justify-between">
         <p className="font-semibold m-1 text-indigo-700 text-center">
-          {fieldName}
+          {fieldName}{fieldValue.conf && <span className="text-sm m-2 text-blue-400">({fieldValue.conf?.toFixed(2)})</span>}
         </p>
         {(status == "uploaded" || status == "pre-labelled") ? fieldValue.location?.pageNo !== 0 && (
           <button

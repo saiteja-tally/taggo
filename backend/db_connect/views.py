@@ -156,7 +156,10 @@ def get_json(request, status: str, id: str):
             bucket = settings.S3_PRE_LABEL_BUCKET
         
         elif status == 'labelled':
-            bucket = settings.S3_LABEL_BUCKET
+            bucket = settings.S3_LABELLING_BUCKET
+        
+        elif status == 'rejected':
+            bucket = settings.S3_LABELLING_BUCKET
 
         elif status == 'done':
             bucket = settings.S3_LABEL_BUCKET
@@ -183,7 +186,10 @@ def save_json(request , status: str, id: str):
         if status == 'pre-labelled':
             user = 'inhouse-model'
             bucket = settings.S3_PRE_LABEL_BUCKET
-        elif status == 'labelled' or status == 'accepted':
+        elif status == 'labelled' or status == 'rejected':
+            user = request.user.username
+            bucket = settings.S3_LABELLING_BUCKET
+        elif status == 'accepted':
             user = request.user.username
             bucket = settings.S3_LABEL_BUCKET
         else:
