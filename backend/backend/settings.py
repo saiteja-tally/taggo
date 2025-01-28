@@ -81,12 +81,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tango',
-        'USER': 'root',
-        'PASSWORD': '12345',
-        'HOST': '127.0.0.1',  # Set to 'localhost' if the database is on the same machine
-        'PORT': '3306',  # Set to '3306' by default for MySQL
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'taggo',
+        'USER': 'postgres',
+        'PASSWORD': 'pravesh123',
+        'HOST': 'tally-ai-doc-ai-taggo-database.c1scke6e0waa.ap-south-1.rds.amazonaws.com',
+        'PORT': '5432',  # Set to '3306' by default for MySQL
     }
 }
 
