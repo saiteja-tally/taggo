@@ -1,5 +1,6 @@
 import React from "react";
 import { BiComment } from "react-icons/bi";
+import TextareaAutosize from "react-textarea-autosize";
 
 interface SingleValuedFieldProps {
   status: string | null,
@@ -96,7 +97,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           </button>
         ) :
           (selectedField === fieldName && status != 'accepted') ? (
-            <textarea
+            <TextareaAutosize
               className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
               value={fieldValue.comment || ""}
               placeholder="Add comment"
@@ -106,14 +107,11 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
                   e.target.value,
                   null,
                   "add comment"
-                );
-                adjustTextareaHeight(e.target);
+                )
               }
               }
               rows={1} // Default row count
-              ref={(el) => {
-                if (el) adjustTextareaHeight(el); // Adjust height on initial render
-              }}
+              wrap="off"
             />
           ) : fieldValue.comment ? (
             <div className="flex items-center">
@@ -122,7 +120,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           ) : null}
       </div>
 
-      <textarea
+      <TextareaAutosize
         className={`text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full ${selectedField === fieldName ? "border border-red-300" : ""
           }`}
         value={fieldValue.text}
@@ -141,7 +139,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
         ref={(el) => {
           if (el) adjustTextareaHeight(el); // Adjust height on initial render
         }}
-        wrap="soft"
+        wrap="off"
       />
     </div>
   );

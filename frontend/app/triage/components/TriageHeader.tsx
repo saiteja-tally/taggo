@@ -19,7 +19,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
 
   const handleNextClick = async () => {
     if (!doc_id) {
-    console.error("Document ID is missing");
+      console.error("Document ID is missing");
       return;
     }
     try {
@@ -35,10 +35,10 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       const data = response.data;
       if (data.status === "success") {
         const annotation = data.annotation;
-        if (annotation){
-        window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;;
+        if (annotation) {
+          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;;
         }
-        else{
+        else {
           alert("You are at the last document");
         }
       } else {
@@ -68,12 +68,12 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       const data = response.data;
       if (data.status === "success") {
         const annotation = data.annotation;
-        if (annotation){
+        if (annotation) {
           window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;;
-          }
-          else{
-            alert("You are at the first document");
-          }
+        }
+        else {
+          alert("You are at the first document");
+        }
       } else {
         alert(`Failed to get next document: ${data.message}`);
       }
@@ -129,8 +129,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
             &lt; Prev
           </button>
         </div>
-        <div className="flex flex-col">
-
+        <div className="flex flex-col mx-3">
           <div className="flex items-center space-x-2">
             <p className="font-semibold text-lg">Doc ID:</p>
             <p className="text-lg text-gray-700">{doc_id}</p>

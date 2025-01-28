@@ -155,7 +155,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
   };
 
   const handleSave = async (status: string) => {
-    console.log("save-data", extractedData);
     try {
       const response = await axiosInstance.post(
         `${BACKEND_URLS.save_json}/${status}/${doc_id}/`,

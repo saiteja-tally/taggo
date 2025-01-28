@@ -187,7 +187,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto mt-4 relative">
+    <div className="max-w-7xl mx-auto mt-4 relative">
       <div className="h-[80vh] overflow-y-auto">
         <div className="bg-blue-900 text-white rounded-md p-4 sticky top-0 z-10">
           <div className="grid grid-cols-3 gap-3 text-xl text-center">
@@ -222,7 +222,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                 options={uniqueStatuses.map(status => ({ ...status, label: `${status.label} (${data.filter(item => item.status === status.value).length})` }))}
                 onChange={(selectedOptions) => setStatusFilter(selectedOptions as unknown as Option[])}
                 placeholder="Select status"
-                className="w-full text-black"
+                className="text-black"
               />
             </div>
           </div>
@@ -247,7 +247,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                       handleUserChange(item.id, selectedOption?.value || null)
                     }}
                     placeholder="Select user"
-                    className="w-1/2"
+                    className=""
                   />) :
                     <p className="text-sm text-bold">{item.assigned_to_user}</p>}
                 </div>

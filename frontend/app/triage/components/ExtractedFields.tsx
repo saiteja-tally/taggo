@@ -194,6 +194,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <TableFields
+              status={status}
               fieldName={fieldName}
               fieldValue={fieldValue}
               handleNestedFieldChange={handleNestedFieldChange}
@@ -208,6 +209,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <TableFields
+            status={status}
               fieldName={fieldName}
               fieldValue={fieldValue}
               handleNestedFieldChange={handleNestedFieldChange}

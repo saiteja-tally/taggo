@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import AddField from "./AddField";
+import TextareaAutosize from "react-textarea-autosize";
 
 interface TableFieldsProps {
+  status: string | null;
   fieldName: string;
   fieldValue: any[];
   handleNestedFieldChange: (
@@ -27,6 +29,7 @@ interface DisplayCols {
 }
 
 const TableFields: React.FC<TableFieldsProps> = ({
+  status,
   fieldName,
   fieldValue,
   handleNestedFieldChange,
@@ -37,7 +40,6 @@ const TableFields: React.FC<TableFieldsProps> = ({
   const [currIndex, setCurrIndex] = useState<number | null>(null);
   const [currField, setCurrField] = useState<string | null>(null);
   const [displayCols, setDisplayCols] = useState<DisplayCols>({});
-  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const textAreaFocused = useRef<boolean>(false);
 
   const changeCurr = (index: number, fieldName: string) => {
@@ -113,21 +115,8 @@ const TableFields: React.FC<TableFieldsProps> = ({
     }
 
     setDisplayCols(initialDisplayCols);
-  }, []);
+  }, [fieldValue]);
 
-
-  const adjustTextareaSize = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = "auto"; // Reset to calculate scrollHeight
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  
-    textarea.style.width = "auto"; // Reset to calculate scrollWidth
-    textarea.style.width = `${textarea.scrollWidth}px`;
-  };
-
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    adjustTextareaSize(event.target);
-  };
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -180,6 +169,10 @@ const TableFields: React.FC<TableFieldsProps> = ({
     window.addEventListener("keydown", handle);
     return () => window.removeEventListener("keydown", handle);
   }, [handleKeyDown]);
+
+  const maxLength = (text: string) => {
+    return text.split("\n").reduce((max, line) => Math.max(max, line.length), 0);
+  };
 
   return (
     <div className="h-[25vh] overflow-auto sm:text-xs md:text-xs lg:text-lg xl:text-lg">
@@ -254,14 +247,12 @@ const TableFields: React.FC<TableFieldsProps> = ({
                         : ""
                         }`}
                     >
-                      {colName !== "id" ? (
-                        <div className="flex justify-content items-center">
-                          <textarea
+                      {colName !== "id"  ? (
+                        <div className="flex items-center">
+                          <TextareaAutosize
                             value={row[colName]?.text || ""}
-                            className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-hidden resize-none"
-                            ref={textAreaRef}
+                            className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                             onChange={(e) => {
-                              handleInputChange;
                               handleNestedFieldChange(
                                 fieldName,
                                 index,
@@ -269,13 +260,16 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 e.target.value,
                                 row[colName]?.location,
                                 "update value"
-                              )
+                              );
                             }}
+                            disabled={status != "uploaded" && status != "pre-labelled"}
+                            wrap="off"
                             rows={1}
+                            cols={maxLength(row[colName]?.text || "")}
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
                           />
-                          {row[colName]?.location?.pageNo !== 0 && (
+                          {row[colName]?.location?.pageNo !== 0 && status && status in ['uploaded', 'pre-labelled'] &&(
                             <button
                               onClick={() =>
                                 handleNestedFieldChange(
@@ -288,8 +282,8 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 )
                               }
                               disabled={
-                                colName !== currField || index !== currIndex
-                              }
+                                (colName !== currField || index !== currIndex )
+                               }
                               className="relative"
                             >
                               <img

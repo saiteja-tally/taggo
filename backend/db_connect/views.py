@@ -161,7 +161,7 @@ def get_json(request, status: str, id: str):
         elif status == 'rejected':
             bucket = settings.S3_LABELLING_BUCKET
 
-        elif status == 'done':
+        elif status == 'accepted':
             bucket = settings.S3_LABEL_BUCKET
 
         else:
