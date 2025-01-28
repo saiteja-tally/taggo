@@ -119,7 +119,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
         <p className="m-1 text-lg font-semibold">Home</p>
       </Link>
 
-      <h1 className="text-2xl font-bold text-teal-900">Taggo</h1>
+      {/* <h1 className="text-2xl font-bold text-teal-900">Taggo</h1> */}
       <div className="flex items-center text-teal-900 relative">
         <div className="p-1 relative group">
           <button
@@ -159,7 +159,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
             </div>
           )}
         </div>
-        <div className="p-1 relative group border">
+        <div className="p-1 relative group">
           <button
             className="m-1 text-white bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-4 py-2 rounded-lg shadow-md"
             onClick={handleNextClick}
@@ -167,8 +167,8 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
             Next &gt;
           </button>
         </div>
-        <AccountDetails username={username} />
       </div>
+      <AccountDetails username={username} />
     </div>
   );
 };
