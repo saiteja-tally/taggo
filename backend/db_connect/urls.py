@@ -18,7 +18,7 @@ from .views import (
 
 urlpatterns = [
     path(
-        "get_annotations/<int:perPage>/<int:page>",
+        "get_annotations/<str:assignee>/<str:status>/<int:perPage>/<int:page>",
         get_annotations,
         name="get annotations",
     ),

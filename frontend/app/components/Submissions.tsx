@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Select from "react-select";
 import BACKEND_URLS from "../BackendUrls";
 import { FaSpinner } from "react-icons/fa";
-import { FaExclamationCircle } from "react-icons/fa"; // Import icon from react-icons library
+// import { FaExclamationCircle } from "react-icons/fa"; // Import icon from react-icons library
 import axiosInstance from "../utils/axiosInstance";
 import SmartAssign from "../utils/SmartAssign";
 
@@ -37,19 +37,19 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [hoveredRowID, sethoveredRowID] = useState<string | null>(null);
   const [users, setUsers] = useState<Option[]>([]);
+  const [selectedAssignee, setSelectedAssignee] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
   // Filter states for each column
-  const [statusFilter, setStatusFilter] = useState<Option[]>([]);
-  const [assigneeFilter, setAssigneeFilter] = useState<Option[]>([]);
   const [triageReady, setTriageReady] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const perPage = 20;
 
-  const fetchData = async (page: number) => {
+  const fetchAnnotations = async (assignee: string, status: string, page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.get(`${BACKEND_URLS.get_annotations}/${perPage}/${page}`);
+      const response = await axiosInstance.get(`${BACKEND_URLS.get_annotations}/${assignee}/${status}/${perPage}/${page}`);
       if (response.status !== 200) {
         throw new Error("Failed to fetch data");
       }
@@ -64,8 +64,8 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   };
 
   useEffect(() => {
-    fetchData(page);
-  }, [page]);
+    fetchAnnotations(selectedAssignee, selectedStatus, page);
+  }, [page, selectedAssignee, selectedStatus]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -87,7 +87,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   }, []);
 
   // Extract unique values for dropdowns
-  const uniqueStatuses = Array.from(new Set(data.map((item) => item.status))).map(status => ({ value: status, label: status }));
+  const uniqueStatuses = ['uploaded', 'pre-labelled', 'labelled', 'accepted', 'rejected', 'done'].map((status) => ({ value: status, label: status }));
 
   const handleUserChange = async (id: string, user_id: number | null) => {
     try {
@@ -117,22 +117,6 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
 
   const [showDialog, setShowDialog] = useState<boolean>(false);
 
-  // Filtering logic based on column values
-  const filteredData = data.filter(
-    (item) =>
-      (statusFilter.length === 0 || statusFilter.some((filter) => filter.label === item.status)) &&
-      (assigneeFilter.length === 0 || assigneeFilter.some((filter) => filter.label === item.assigned_to_user))
-  );
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <FaSpinner className="animate-spin text-4xl text-blue-600" />{" "}
-        {/* Rotating spinner */}
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -144,16 +128,6 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
         >
           Refresh
         </button>
-      </div>
-    );
-  }
-
-  if (filteredData.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />{" "}
-        {/* Icon */}
-        <p className="text-xl text-blue-600">No data available</p> {/* Text */}
       </div>
     );
   }
@@ -174,7 +148,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
     try {
       const response = await axiosInstance.post(BACKEND_URLS.smart_assign, { status, userGroup, percentage });
       if (response.status === 200) {
-        fetchData(page);
+        fetchAnnotations("all", "all", page);
         setShowDialog(false);
         alert("Smart assign successful: " + response.data.message);
       } else {
@@ -207,10 +181,13 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                   </button>
                 )}
               </div>
-              {userData && userData.is_superuser &&(<Select
+              {userData && userData.is_superuser && (<Select
                 isMulti
-                options={users.map(user => ({ ...user, label: `${user.label} (${data.filter(item => item.assigned_to_user_id === user.value).length})` }))}
-                onChange={(selectedOptions) => setAssigneeFilter(selectedOptions as Option[])}
+                options={users.map(user => ({ ...user, label: `${user.label}` }))}
+                onChange={(selectedOptions) => {
+                  const selectedAssignee = selectedOptions.map(option => option.label).join(',');
+                  setSelectedAssignee(selectedAssignee || 'all');
+                }}
                 placeholder="Select assignee"
                 className="text-black"
               />)}
@@ -218,82 +195,89 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             <div className="flex flex-col items-center">
               <h1 className="text-lg font-semibold mb-3">Status</h1>
               <Select
-                isMulti
-                options={uniqueStatuses.map(status => ({ ...status, label: `${status.label} (${data.filter(item => item.status === status.value).length})` }))}
-                onChange={(selectedOptions) => setStatusFilter(selectedOptions as unknown as Option[])}
-                placeholder="Select status"
-                className="text-black"
+              isMulti
+              options={uniqueStatuses.map(status => ({ ...status, label: `${status.label}` }))}
+              onChange={(selectedOptions) => {
+                const selectedStatus = selectedOptions.map(option => option.label).join(',');
+                setSelectedStatus(selectedStatus || 'all');
+              }}
+              placeholder="Select status"
+              className="text-black"
               />
             </div>
           </div>
         </div>
-        <div className="">
-          {filteredData.map((item) => (
-            <div
-              className="my-4 p-4 bg-white border border-blue-300 rounded-md shadow-md hover:shadow-lg transition duration-600 ease-in-out"
-              key={item.id}
-              onMouseEnter={() => sethoveredRowID(item.id)}
-              onMouseLeave={() => sethoveredRowID(null)}
-            >
-              <div className="grid grid-cols-3 gap-4 items-center">
-                <div className="">
-                  <p className="text-sm font-semibold">{item.id}</p>
-                </div>
-                <div className="flex justify-center">
-                  {(userData && userData.is_superuser) ? (<Select
-                    value={item.assigned_to_user && item.assigned_to_user != "Unassigned" ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
-                    options={users} // Example options
-                    onChange={(selectedOption) => {
-                      handleUserChange(item.id, selectedOption?.value || null)
+        {isLoading ?
+          <div className="flex items-center justify-center h-screen">
+            <FaSpinner className="animate-spin text-4xl text-blue-600" />
+          </div> :
+          <div className="">
+            {data.map((item: Annotation) => (
+              <div
+                className="my-4 p-4 bg-white border border-blue-300 rounded-md shadow-md hover:shadow-lg transition duration-600 ease-in-out"
+                key={item.id}
+                onMouseEnter={() => sethoveredRowID(item.id)}
+                onMouseLeave={() => sethoveredRowID(null)}
+              >
+                <div className="grid grid-cols-3 gap-4 items-center">
+                  <div className="">
+                    <p className="text-sm font-semibold">{item.id}</p>
+                  </div>
+                  <div className="flex justify-center">
+                    {(userData && userData.is_superuser) ? (<Select
+                      value={item.assigned_to_user && item.assigned_to_user != "Unassigned" ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
+                      options={users} // Example options
+                      onChange={(selectedOption) => {
+                        handleUserChange(item.id, selectedOption?.value || null)
+                      }}
+                      placeholder="Select user"
+                      className=""
+                    />) :
+                      <p className="text-sm text-bold">{item.assigned_to_user}</p>}
+                  </div>
+                  <Link
+                    href={{
+                      pathname: "/triage",
+                      query: {
+                        doc_id: item.id,
+                        history: JSON.stringify(item.history),
+                        status: item.status,
+                        username: userData?.username || '',
+                      },
                     }}
-                    placeholder="Select user"
-                    className=""
-                  />) :
-                    <p className="text-sm text-bold">{item.assigned_to_user}</p>}
+                    onClick={() => setTriageReady(true)}
+                    className={`text-center rounded-lg p-2 cursor-pointer ${item.status === "uploaded"
+                      ? "bg-blue-200"
+                      : item.status === "labelled"
+                        ? "bg-blue-300"
+                        : item.status === "pre-labelled"
+                          ? "bg-blue-400"
+                          : item.status === "accepted"
+                            ? "bg-blue-500"
+                            : item.status === "rejected"
+                              ? "bg-blue-600"
+                              : "bg-blue-700"
+                      }`}
+                  >
+                    {item.status}
+                  </Link>
                 </div>
-                <Link
-                  href={{
-                    pathname: "/triage",
-                    query: {
-                      doc_id: item.id,
-                      history: JSON.stringify(item.history),
-                      status: item.status,
-                      username: userData?.username || '',
-                    },
-                  }}
-                  onClick={() => setTriageReady(true)}
-                  className={`text-center rounded-lg p-2 cursor-pointer ${item.status === "uploaded"
-                    ? "bg-blue-200"
-                    : item.status === "labelled"
-                      ? "bg-blue-300"
-                      : item.status === "pre-labelled"
-                        ? "bg-blue-400"
-                        : item.status === "accepted"
-                          ? "bg-blue-500"
-                          : item.status === "rejected"
-                            ? "bg-blue-600"
-                            : "bg-blue-700"
-                    }`}
-                >
-                  {item.status}
-                </Link>
+                {(item.id == hoveredRowID) ? (
+                  <div className="text-blue-500">
+                    {item.history.map((instance: any, index: number) => (
+                      <div key={index} className="flex justify-between">
+                        <p className="text-sm">{instance}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : item.history.length > 0 && (
+                  <div className="text-blue-500">
+                    <p className="text-sm">{item.history[item.history.length - 1]}</p>
+                  </div>
+                )}
               </div>
-              {(item.id == hoveredRowID) ? (
-                <div className="text-blue-500">
-                  {item.history.map((instance, index) => (
-                    <div key={index} className="flex justify-between">
-                      <p className="text-sm">{instance}</p>
-                    </div>
-                  ))}
-                </div>
-              ): item.history.length > 0 && (
-                <div className="text-blue-500">
-                  <p className="text-sm">{item.history[item.history.length - 1]}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>}
       </div>
       <div className="flex justify-between items-center mt-4">
         <button

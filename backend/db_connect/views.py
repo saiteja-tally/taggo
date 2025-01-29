@@ -28,11 +28,23 @@ s3 = boto3.client('s3')
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_annotations(request, perPage: int, page: int):
-    if request.user.is_superuser:
-        annotations_list = Annotation.objects.all().order_by('-inserted_time')
+def get_annotations(request, assignee:str, status: str, perPage: int, page: int):
+    if status == "all":
+        if request.user.is_superuser:
+            if assignee == "all":
+                annotations_list = Annotation.objects.all().order_by('-inserted_time')
+            else:
+                annotations_list = Annotation.objects.filter(assigned_to_user__username=assignee).order_by('-inserted_time')
+        else:
+            annotations_list = Annotation.objects.filter(assigned_to_user=request.user).order_by('-inserted_time')
     else:
-        annotations_list = Annotation.objects.filter(assigned_to_user=request.user).order_by('-inserted_time')
+        if request.user.is_superuser:
+            if assignee == "all":
+                annotations_list = Annotation.objects.filter(status=status).order_by('-inserted_time')
+            else:
+                annotations_list = Annotation.objects.filter(status=status, assigned_to_user__username=assignee).order_by('-inserted_time')
+        else:
+            annotations_list = Annotation.objects.filter(assigned_to_user=request.user, status=status).order_by('-inserted_time')
 
     paginator = Paginator(annotations_list, perPage)  # Use perPage for annotations per page
 

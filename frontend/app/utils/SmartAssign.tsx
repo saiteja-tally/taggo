@@ -22,6 +22,7 @@ const SmartAssign: React.FC<SmartAssignProps> = ({ handleCloseClick, handleSmart
             const response = await axiosInstance.get('/get_smart_assign_data');
             setGroupsWithUsers(response.data.groups);
             setStatusWithCount(response.data.status);
+            // console.log(response.data);
             setLoading(false);
         };
         fetchData();
