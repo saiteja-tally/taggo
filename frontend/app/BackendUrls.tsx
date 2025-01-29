@@ -1,6 +1,4 @@
-import { get } from "http";
-
-const hostIp = '127.0.0.1';
+const hostIp = '10.96.2.134';
 const port = 8000
 
 const BACKEND_URLS = {
