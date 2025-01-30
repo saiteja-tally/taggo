@@ -289,19 +289,9 @@ def get_ocr_text(request):
         if request.method == 'POST' and 'file' in request.FILES:
             start_time = datetime.now()
             uploaded_file = request.FILES['file']
-            ltwh = json.loads(request.POST['ltwh'])
 
             # Use Pillow to open the uploaded image file
             image = Image.open(uploaded_file)
-
-            # get cordinates from normalized cordinates
-            width, height = image.size
-            left = ltwh[0] * width
-            top = ltwh[1] * height
-            right = left + ltwh[2] * width
-            bottom = top + ltwh[3] * height
-
-            image = image.crop((left, top, right, bottom))
 
             # Convert RGBA to RGB
             rgb_image = image.convert("RGB")

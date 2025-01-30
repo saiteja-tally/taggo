@@ -221,14 +221,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const handleMouseUp = async () => {
     if (!boxLocation && selectedField) {
       setDrawingBox(false);
-      document.body.classList.remove("no-select"); // Disable text selection
+      document.body.classList.remove("no-select");
 
       if (viewerLoc) {
-        // Calculate the scroll offset of the page div
         const scrollOffsetX = viewerRef.current?.scrollLeft || 0;
         const scrollOffsetY = viewerRef.current?.scrollTop || 0;
 
-        // Calculate the position of the rectangle relative to the scrolled viewport
         const left = Math.min(startX, endX) + scrollOffsetX;
         const top = Math.min(startY, endY) + scrollOffsetY;
         const width = Math.abs(endX - startX);
@@ -238,97 +236,73 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         const scaledWidth = width / pdfDim.width / scale;
         const scaledHeight = height / pdfDim.height / scale;
 
-        if (
-          selectedField != "Table" &&
-          selectedField != "LedgerDetails" &&
-          selectedField != "ROI"
-        ) {
-          handleSingleValuedFieldChange(
-            selectedField,
-            null,
-            {
-              pageNo: pageNumber,
-              ltwh: [scaledLeft, scaledTop, scaledWidth, scaledHeight],
-            },
-            "add bbox"
-          );
+        const bbox = {
+          pageNo: pageNumber,
+          ltwh: [scaledLeft, scaledTop, scaledWidth, scaledHeight],
+        };
+
+        if (["Table", "LedgerDetails", "ROI"].includes(selectedField)) {
+          handleNestedFieldChange(selectedField, selectedRow, colName, null, bbox, "add bbox");
         } else {
-          handleNestedFieldChange(
-            selectedField,
-            selectedRow,
-            colName,
-            null,
-            {
-              pageNo: pageNumber,
-              ltwh: [scaledLeft, scaledTop, scaledWidth, scaledHeight],
-            },
-            "add bbox"
-          );
+          handleSingleValuedFieldChange(selectedField, null, bbox, "add bbox");
         }
 
-        // Crop the selected area as an image
+        // Ensure correct canvas selection
+        const canvasElement = viewerRef.current?.querySelector("canvas");
+        if (!canvasElement) {
+          console.error("Canvas not found");
+          return;
+        }
+
+        // Get the bounding rect of the canvas
+        const canvasRect = canvasElement.getBoundingClientRect();
+        const scaleX = canvasElement.width / canvasRect.width;
+        const scaleY = canvasElement.height / canvasRect.height;
+
+        // Adjust mouse coordinates relative to the canvas
+        const adjustedLeft = left * scaleX;
+        const adjustedTop = top * scaleY;
+        const adjustedWidth = width * scaleX;
+        const adjustedHeight = height * scaleY;
+
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
-        
-        // No cropping needed, directly send the entire canvas
-        const canvasElement = document.getElementsByTagName("canvas")[0];
-        canvas.width = canvasElement.width;
-        canvas.height = canvasElement.height;
+        canvas.width = adjustedWidth;
+        canvas.height = adjustedHeight;
+
         context?.drawImage(
           canvasElement,
+          adjustedLeft,
+          adjustedTop,
+          adjustedWidth,
+          adjustedHeight,
           0,
           0,
-          canvasElement.width,
-          canvasElement.height,
-          0,
-          0,
-          canvasElement.width,
-          canvasElement.height
+          adjustedWidth,
+          adjustedHeight
         );
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            // Send the image and coordinates to the backend
-            const formData = new FormData();
-            formData.append("file", blob, "cropped_image.png");
-            formData.append("ltwh", JSON.stringify([scaledLeft, scaledTop, scaledWidth, scaledHeight]));
 
-            try {
-              const response = await axiosInstance.post(`${BACKEND_URLS.get_ocr_text}`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-              );
-              const data = await response.data;
-              if (
-          selectedField != "Table" &&
-          selectedField != "LedgerDetails" &&
-          selectedField != "ROI"
-              ) {
-          handleSingleValuedFieldChange(
-            selectedField,
-            data.text,
-            null,
-            "update value"
-          );
-              } else {
-          handleNestedFieldChange(
-            selectedField,
-            selectedRow,
-            colName,
-            data.text,
-            null,
-            "update value"
-          );
-              }
-            } catch (error) {
-              console.error("Error during OCR:", error);
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+
+          const formData = new FormData();
+          formData.append("file", blob, "cropped_image.png");
+
+          try {
+            const { data } = await axiosInstance.post(BACKEND_URLS.get_ocr_text, formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            if (["Table", "LedgerDetails", "ROI"].includes(selectedField)) {
+              handleNestedFieldChange(selectedField, selectedRow, colName, data.text, null, "update value");
+            } else {
+              handleSingleValuedFieldChange(selectedField, data.text, null, "update value");
             }
+          } catch (error) {
+            console.error("Error during OCR:", error);
           }
         });
-            }
+      }
 
       setStartX(0);
       setStartY(0);
