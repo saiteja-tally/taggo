@@ -1,4 +1,4 @@
-const hostIp = '10.96.2.134';
+const hostIp = 'localhost';
 const port = 8000
 
 const BACKEND_URLS = {

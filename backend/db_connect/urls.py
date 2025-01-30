@@ -1,20 +1,13 @@
 from django.urls import path
 from .views import (
     get_annotations,
-    get_document,
     upload_document,
-    get_json,
     get_users,
     assign_annotation,
-    save_json,
-    get_ocr_text,
-    reject_annotation,
-    get_next,
-    get_prev,
     smart_assign,
-    accept_annotation,
     get_smart_assigin_data
 )
+from .triage_views import (get_document, get_json, save_json, get_ocr_text, reject_annotation, get_next, get_prev, accept_annotation)
 
 urlpatterns = [
     path(

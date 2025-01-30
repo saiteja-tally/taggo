@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, ChangeEvent } from "react";
 import BACKEND_URLS from "../BackendUrls";
 import axiosInstance from "../utils/axiosInstance";
@@ -13,7 +14,6 @@ interface HomeHeaderProps {
     is_superuser: boolean;
   } | null;
 }
-
 
 interface FileUploadEvent extends ChangeEvent<HTMLInputElement> {
   target: HTMLInputElement & EventTarget;
@@ -33,7 +33,6 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
         formData.append("document", file);
 
         try {
-
           const response = await axiosInstance.post(
             BACKEND_URLS.upload_document,
             formData, // Pass FormData directly
@@ -52,9 +51,9 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
         } catch (error: any) {
           console.error("Error during file upload:", error.response?.data.message || error.message);
           alert("Error during file upload: " + (error.response?.data.message || error.message));
-        } 
+        }
       }
-        setIsLoading(false); // Set loading state back to false
+      setIsLoading(false); // Set loading state back to false
     }
     window.location.reload();
   };
@@ -73,10 +72,11 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
       <h1 className="text-3xl font-bold text-teal-900 sm:p-0 md:p-1 lg:p-2 xl:p-3">
         Taggo
       </h1>
-      <div className="flex items-center">
+      <div className="flex items-center space-x-4">
+        
         <label
           htmlFor="file-upload"
-          className={`cursor-pointer bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl text-black sm:p-0 md:p-1 lg:p-2 xl:p-3 rounded-xl flex items-center transition duration-100 ${isLoading ? "opacity-50 pointer-events-none" : ""
+          className={`cursor-pointer bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl text-black sm:p-1 md:p-2 lg:p-3 xl:p-4 rounded-xl flex items-center transition duration-100 ${isLoading ? "opacity-50 pointer-events-none" : ""
         }`}
         >
           <svg
@@ -103,7 +103,8 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
           className="hidden"
           onChange={handleFileUpload}
         />
-        {userData && <AccountDetails username={userData.username} />}
+        
+        {userData && <AccountDetails userData={userData} />}
       </div>
     </div>
   );

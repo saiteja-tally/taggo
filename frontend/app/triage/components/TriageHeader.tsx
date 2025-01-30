@@ -3,7 +3,6 @@ import Link from "next/link";
 import { HiHome } from "react-icons/hi";
 import { FaSpinner, FaHistory } from "react-icons/fa";
 import BACKEND_URLS from "@/app/BackendUrls";
-import AccountDetails from "@/app/utils/AccountDetails";
 import axiosInstance from "@/app/utils/axiosInstance";
 
 interface TriageHeaderProps {
@@ -168,7 +167,6 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
           </button>
         </div>
       </div>
-      <AccountDetails username={username} />
     </div>
   );
 };
