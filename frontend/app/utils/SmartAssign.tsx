@@ -14,22 +14,23 @@ const SmartAssign: React.FC<SmartAssignProps> = ({ handleCloseClick, handleSmart
     const [userGroup, setUserGroup] = useState<string | null>(null);
     const [percentage, setPercentage] = useState<number | null>(50);
     const [groupsWithUsers, setGroupsWithUsers] = useState<Record<string, string[]> | null>(null);
-    const [statusWithCount, setStatusWithCount] = useState<Record<string, number> | null>(null);
+    const [unassignedFrac, setUnassignedFrac] = useState<Record<string, number> | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchData = async () => {
             const response = await axiosInstance.get('/get_smart_assign_data');
             setGroupsWithUsers(response.data.groups);
-            setStatusWithCount(response.data.status);
-            // console.log(response.data);
+            setUnassignedFrac(response.data.status);
             setLoading(false);
         };
         fetchData();
     }, [])
 
     if (loading) {
-        return <div className="text-center p-6">Loading...</div>;
+        return <div className="text-center p-6">
+            <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
+        </div>;
     }
 
     return (
@@ -45,7 +46,7 @@ const SmartAssign: React.FC<SmartAssignProps> = ({ handleCloseClick, handleSmart
                 <h3 className="font-semibold text-xl mb-2">Status:</h3>
                 <Select
                     placeholder="Select status"
-                    options={statusWithCount ? Object.keys(statusWithCount).map((status) => ({ value: status, label: `${status} (${statusWithCount[status]})` })) : []}
+                    options={unassignedFrac ? Object.keys(unassignedFrac).map((status) => ({ value: status, label: `${status} (${unassignedFrac[status]})` })) : []}
                     onChange={(selectedOption) => setStatus(selectedOption?.value || null)}
                     className="w-full"
                 />

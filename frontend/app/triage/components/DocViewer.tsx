@@ -39,8 +39,6 @@ const DocViewer: React.FC<DocViewerProps> = ({
   dataChanged,
 }) => {
   const fileUrl = `${BACKEND_URLS.get_document}/${doc_id}`;
-
-  // const fileUrl = './document.pdf';
   
 
   const downloadFile = (file: string, docType: string) => {

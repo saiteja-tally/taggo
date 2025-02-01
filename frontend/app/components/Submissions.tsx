@@ -76,7 +76,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
         }
         const data = response.data;
         const usersData = data.data.map((user: any) => ({ value: user.id, label: user.username, group: user.groups }));
-        setUsers([...usersData, { value: null, label: "Unassigned" }]);
+        setUsers([...usersData, { value: null, label: "unassigned" }]);
       } catch (error: any) {
         setData([]);
         console.error("Failed to fetch users:", error);
@@ -87,7 +87,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   }, []);
 
   // Extract unique values for dropdowns
-  const uniqueStatuses = ['uploaded', 'pre-labelled', 'labelled', 'accepted', 'rejected', 'done'].map((status) => ({ value: status, label: status }));
+  const uniqueStatuses = ['uploaded', 'pre-labelled', 'labelled', 'accepted', 'rejected', 'done', 'all'].map((status) => ({ value: status, label: status }));
 
   const handleUserChange = async (id: string, user_id: number | null) => {
     try {
@@ -135,7 +135,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   if (triageReady) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <FaSpinner className="animate-spin text-4xl text-blue-600" />{" "}
+        <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
       </div>
     );
   }
@@ -181,35 +181,31 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                   </button>
                 )}
               </div>
-              {userData && userData.is_superuser && (<Select
-                isMulti
-                options={users.map(user => ({ ...user, label: `${user.label}` }))}
-                onChange={(selectedOptions) => {
-                  const selectedAssignee = selectedOptions.map(option => option.label).join(',');
-                  setSelectedAssignee(selectedAssignee || 'all');
+                {userData && userData.is_superuser && (<Select
+                options={[...users.map(user => ({ ...user, label: `${user.label}` })), { value: 'all', label: 'all' }]}
+                onChange={(selectedOption) => {
+                  setSelectedAssignee(selectedOption?.label || 'all');
                 }}
                 placeholder="Select assignee"
-                className="text-black"
-              />)}
+                className="text-black w-full"
+                />)}
             </div>
             <div className="flex flex-col items-center">
               <h1 className="text-lg font-semibold mb-3">Status</h1>
               <Select
-              isMulti
               options={uniqueStatuses.map(status => ({ ...status, label: `${status.label}` }))}
-              onChange={(selectedOptions) => {
-                const selectedStatus = selectedOptions.map(option => option.label).join(',');
-                setSelectedStatus(selectedStatus || 'all');
+              onChange={(selectedOption) => {
+                setSelectedStatus(selectedOption?.label || 'all');
               }}
               placeholder="Select status"
-              className="text-black"
+              className="text-black w-full"
               />
             </div>
           </div>
         </div>
         {isLoading ?
           <div className="flex items-center justify-center h-screen">
-            <FaSpinner className="animate-spin text-4xl text-blue-600" />
+            <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
           </div> :
           <div className="">
             {data.map((item: Annotation) => (
@@ -231,7 +227,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                         handleUserChange(item.id, selectedOption?.value || null)
                       }}
                       placeholder="Select user"
-                      className=""
+                      className="w-full text-center"
                     />) :
                       <p className="text-sm text-bold">{item.assigned_to_user}</p>}
                   </div>

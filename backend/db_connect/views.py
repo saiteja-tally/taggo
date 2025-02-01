@@ -29,6 +29,8 @@ def get_annotations(request, assignee:str, status: str, perPage: int, page: int)
         if request.user.is_superuser:
             if assignee == "all":
                 annotations_list = Annotation.objects.all().order_by('-inserted_time')
+            elif assignee == "unassigned":
+                annotations_list = Annotation.objects.filter(assigned_to_user=None).order_by('-inserted_time')
             else:
                 annotations_list = Annotation.objects.filter(assigned_to_user__username=assignee).order_by('-inserted_time')
         else:
@@ -37,6 +39,8 @@ def get_annotations(request, assignee:str, status: str, perPage: int, page: int)
         if request.user.is_superuser:
             if assignee == "all":
                 annotations_list = Annotation.objects.filter(status=status).order_by('-inserted_time')
+            elif assignee == "unassigned":
+                annotations_list = Annotation.objects.filter(status=status, assigned_to_user=None).order_by('-inserted_time')
             else:
                 annotations_list = Annotation.objects.filter(status=status, assigned_to_user__username=assignee).order_by('-inserted_time')
         else:
@@ -217,7 +221,7 @@ def smart_assign(request):
         logger.error(f"Error assigning annotations: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
-
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_smart_assigin_data(request):
     all_groups = Group.objects.all().values('name', 'user__username')

@@ -5,7 +5,6 @@ import ToggleView from "./ToggleView";
 import { FaExclamationCircle } from "react-icons/fa";
 import AddField from "./AddField";
 import ROIField from "./ROIField";
-import { FaSpinner } from "react-icons/fa";
 
 
 const predefinedFields = {
@@ -260,8 +259,8 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         } text-center font-mono`}
     >
       {isLoading && <div className="flex items-center justify-center h-screen">
-              <FaSpinner className="animate-spin text-4xl text-blue-600" />{" "}
-              {/* Rotating spinner */}
+        <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
+
             </div>}
       <div
         className={`${viewType === "General"

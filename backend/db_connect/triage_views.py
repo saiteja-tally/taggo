@@ -34,7 +34,8 @@ def accept_annotation(request):
         logger.error(f"Error accepting annotation: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
-
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def get_document(request, id: str):
     try:
         s3_file_key = Annotation.objects.values("s3_file_key").get(id=id)['s3_file_key']
@@ -58,7 +59,8 @@ def get_document(request, id: str):
     except Exception as e:
         logger.error(f"Error retrieving document: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
+
+@api_view(['GET'])    
 @permission_classes([IsAuthenticated])
 def get_json(request, status: str, id: str):
     try:
@@ -96,14 +98,11 @@ def get_json(request, status: str, id: str):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def save_json(request , status: str, id: str):
     try:
         json_data = request.body.decode('utf-8')
-        if status == 'pre-labelled':
-            user = 'inhouse-model'
-            bucket = settings.S3_PRE_LABEL_BUCKET
-        elif status == 'labelled' or status == 'rejected':
+        if status == 'labelled' or status == 'rejected':
             user = request.user.username
             bucket = settings.S3_LABELLING_BUCKET
         elif status == 'accepted':

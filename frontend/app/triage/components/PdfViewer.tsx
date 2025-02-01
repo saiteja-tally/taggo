@@ -4,7 +4,6 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import PdfTools from "./PdfTools";
 import BACKEND_URLS from "@/app/BackendUrls";
-import { FaSpinner } from "react-icons/fa";
 import axiosInstance from "@/app/utils/axiosInstance";
 import './styles.css'; // Assuming this file contains the .no-select class
 
@@ -329,8 +328,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       >
         {loading && (
           <div className="relative inset-0 flex items-center justify-center bg-white bg-opacity-75 h-screen">
-            <FaSpinner className="animate-spin text-4xl text-gray-600" />{" "}
-            {/* Rotating spinner */}
+            <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
           </div>
         )}
         <Document file={file} onLoadSuccess={onDocumentLoadSuccess}>

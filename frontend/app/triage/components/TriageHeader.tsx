@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { HiHome } from "react-icons/hi";
-import { FaSpinner, FaHistory } from "react-icons/fa";
+import { FaHistory } from "react-icons/fa";
 import BACKEND_URLS from "@/app/BackendUrls";
 import axiosInstance from "@/app/utils/axiosInstance";
 
@@ -13,7 +13,7 @@ interface TriageHeaderProps {
 }
 
 const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, username }) => {
-  const [homeReady, setHomeReady] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
 
   const handleNextClick = async () => {
@@ -99,11 +99,11 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
     };
   }, [handleKeyDown]);
 
-  if (homeReady) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <FaSpinner className="animate-spin text-4xl text-blue-600" />
-      </div>
+        <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
+        </div>
     );
   }
 
@@ -112,7 +112,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       <Link
         href="/"
         className="text-teal-900 hover:underline flex items-center"
-        onClick={() => setHomeReady(true)}
+        onClick={() => setLoading(true)}
       >
         <HiHome className="m-1 text-2xl" />
         <p className="m-1 text-lg font-semibold">Home</p>

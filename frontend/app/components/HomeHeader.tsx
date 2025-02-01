@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import { useState, ChangeEvent } from "react";
 import BACKEND_URLS from "../BackendUrls";
 import axiosInstance from "../utils/axiosInstance";
@@ -73,25 +72,25 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
         Taggo
       </h1>
       <div className="flex items-center space-x-4">
-        
+
         <label
           htmlFor="file-upload"
           className={`cursor-pointer bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl text-black sm:p-1 md:p-2 lg:p-3 xl:p-4 rounded-xl flex items-center transition duration-100 ${isLoading ? "opacity-50 pointer-events-none" : ""
-        }`}
+            }`}
         >
           <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6 mr-2"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-        ></path>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            ></path>
           </svg>
           {isLoading ? "Uploading..." : "Upload Files"}
         </label>
@@ -103,8 +102,10 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
           className="hidden"
           onChange={handleFileUpload}
         />
-        
-        {userData && <AccountDetails userData={userData} />}
+
+        {userData ? (<AccountDetails userData={userData} />) :
+          <div className="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mx-auto animate-spin"></div>
+        }
       </div>
     </div>
   );

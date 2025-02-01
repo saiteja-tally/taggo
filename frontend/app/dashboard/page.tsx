@@ -14,7 +14,7 @@ const Dashboard: React.FC = () => {
     if (homeReady) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <FaSpinner className="m-4 animate-spin text-4xl" />
+                <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
             </div>
         )
     }
