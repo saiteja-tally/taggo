@@ -1,8 +1,6 @@
-from django.shortcuts import render
 from .models import Annotation
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import logging
 from django.db import transaction
@@ -246,3 +244,47 @@ def get_smart_assigin_data(request):
     }
 
     return JsonResponse({"groups": groups_with_users, "status": status_counts}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_annotations_count(request):
+    try:
+        total_count = Annotation.objects.count()
+        inprogress_counts = Annotation.objects.filter(status__in=['uploaded', 'pre-labelled', 'labelling', 'labelled', 'accepted', 'rejected']).values('status').annotate(count=Count('status'))
+        done_count = Annotation.objects.filter(status='done').count()
+
+        # Initialize inprogress with all possible statuses
+        inprogress = {status: 0 for status in ['uploaded', 'pre-labelled', 'labelling', 'labelled', 'accepted', 'rejected']}
+        for status in inprogress_counts:
+            inprogress[status['status']] = status['count']
+
+        return JsonResponse({
+            'total': total_count,
+            'inprogress': inprogress,
+            'done': done_count
+        }, status=200)
+
+    except Exception as e:
+        logger.error(f"Error retrieving annotation counts: {e}")
+        return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred.'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_groups_with_users(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'status': 'error', 'message': 'Only superusers can access this endpoint'}, status=403)
+
+    all_groups = Group.objects.all().values('name', 'user__username')
+    groups_with_users = {}
+    for group in all_groups:
+        group_name = group['name']
+        user_name = group['user__username']
+        if group_name not in groups_with_users:
+            groups_with_users[group_name] = []
+        groups_with_users[group_name].append(user_name)
+
+    superusers = User.objects.filter(is_superuser=True).values_list('username', flat=True)
+    groups_with_users['superusers'] = list(superusers)
+
+    return JsonResponse(groups_with_users, status=200)
