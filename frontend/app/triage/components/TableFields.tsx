@@ -112,7 +112,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
       });
 
       initialDisplayCols[field] = fieldValue.some(
-        (row: any) => row[field]?.text !== "" || predefinedFields[field]
+        (row: any) => row[field]?.text !== "" || predefinedFields[field] || row[field]?.comment
       );
     }
 
