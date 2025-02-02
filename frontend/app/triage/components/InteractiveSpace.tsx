@@ -100,6 +100,12 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         };
         setBoxLocation(location);
       }
+      if (instruction === "add comment") {
+        updatedItem[colName] = {
+          ...updatedItem[colName],
+          comment: value ? value : "",
+        };
+      }
       newData[fieldName][index] = updatedItem;
       return newData;
     });

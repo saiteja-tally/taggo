@@ -141,7 +141,7 @@ def assign_annotation(request):
             annotation = Annotation.objects.get(id=annotation_id)
             if user_id == None:
                 assign_to_user = None
-                history_message = f'Unassigned by {assigned_by.username}'
+                history_message = f'unassigned by {assigned_by.username}'
             else:
                 assign_to_user = User.objects.get(id=user_id)
                 assigned_to_username = assign_to_user.username

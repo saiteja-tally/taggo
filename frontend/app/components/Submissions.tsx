@@ -221,7 +221,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                   </div>
                   <div className="flex justify-center">
                     {(userData && userData.is_superuser) ? (<Select
-                      value={item.assigned_to_user && item.assigned_to_user != "Unassigned" ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
+                      value={item.assigned_to_user && item.assigned_to_user != "unassigned" ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
                       options={users} // Example options
                       onChange={(selectedOption) => {
                         handleUserChange(item.id, selectedOption?.value || null)

@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import AddField from "./AddField";
 import TextareaAutosize from "react-textarea-autosize";
+import { BiComment } from "react-icons/bi";
+
 
 interface TableFieldsProps {
   status: string | null;
@@ -247,7 +249,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                         : ""
                         }`}
                     >
-                      {colName !== "id"  ? (
+                      {colName !== "id" ? (
                         <div className="flex items-center">
                           <TextareaAutosize
                             value={row[colName]?.text || ""}
@@ -269,7 +271,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
                           />
-                          {row[colName]?.location?.pageNo !== 0 && status && status in ['uploaded', 'pre-labelled'] &&(
+                          {row[colName]?.location?.pageNo !== 0 && status && status in ['uploaded', 'pre-labelled'] ? (
                             <button
                               onClick={() =>
                                 handleNestedFieldChange(
@@ -282,8 +284,8 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 )
                               }
                               disabled={
-                                (colName !== currField || index !== currIndex )
-                               }
+                                (colName !== currField || index !== currIndex)
+                              }
                               className="relative"
                             >
                               <img
@@ -313,7 +315,30 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 </div>
                               )}
                             </button>
-                          )}
+                          ) : (colName === currField && index === currIndex)?
+                            <TextareaAutosize
+                              className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
+                              value={row[colName].comment || ""}
+                              placeholder="Add comment"
+                              onChange={(e) => {
+                                handleNestedFieldChange(
+                                  fieldName,
+                                  index,
+                                  colName,
+                                  e.target.value,
+                                  null,
+                                  "add comment"
+                                )
+                              }
+                              }
+                              rows={1} // Default row count
+                              wrap="off"
+                            />: 
+                            row[colName].comment ? (
+                                        <div className="flex items-center">
+                                          <BiComment className="text-gray-700" />
+                                        </div>
+                                      ) : null}
                         </div>
                       ) : (
                         row[colName].text
