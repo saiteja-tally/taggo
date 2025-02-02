@@ -1,5 +1,5 @@
-const hostIp = 'localhost';
-const port = 8000
+const hostIp = '10.96.2.134';
+const port = 5000;
 
 const BACKEND_URLS = {
   get_annotations: `http://${hostIp}:${port}/get_annotations`,

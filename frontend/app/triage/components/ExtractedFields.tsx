@@ -39,6 +39,7 @@ const predefinedFields = {
   "OtherReference": false,
   "PortofLoading": false,
   "ReferenceNumber": false,
+  "ReferenceDate": false,
   "TermsofPayment": false,
   "SubAmount": true,
   "TotalAmount": true,
