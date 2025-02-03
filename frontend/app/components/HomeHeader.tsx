@@ -4,6 +4,8 @@ import { useState, ChangeEvent } from "react";
 import BACKEND_URLS from "../BackendUrls";
 import axiosInstance from "../utils/axiosInstance";
 import AccountDetails from "../utils/AccountDetails";
+import { PlusIcon } from "@heroicons/react/24/outline";
+
 
 interface HomeHeaderProps {
   userData: {
@@ -58,38 +60,27 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
   };
 
   return (
-    <div className="flex justify-between bg-gradient-to-r from-blue-300 to-gray-200 sm:p-1 md:p-2 lg:p-3 xl:p-4 shadow-lg">
+    <div className="flex justify-between bg-gradient-to-r from-blue-300 to-gray-200 p-1 shadow-lg">
+      <div className="flex items-center space-x-2">
         <Image
           src={"/Tally-Logo.webp"}
           alt="Image"
-          width={100}
-          height={100}
+          width={60}
+          height={60}
           className=""
         />
-      <h1 className="text-3xl font-bold text-teal-900 sm:p-0 md:p-1 lg:p-2 xl:p-3">
+      </div>
+      <h1 className="text-xl font-bold text-teal-900 p-1">
         Taggo
       </h1>
-      <div className="flex items-center space-x-4">
-
+      <div className="flex items-center space-x-2">
         <label
           htmlFor="file-upload"
-          className={`cursor-pointer bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl text-black sm:p-1 md:p-2 lg:p-3 xl:p-4 rounded-xl flex items-center transition duration-100 ${isLoading ? "opacity-50 pointer-events-none" : ""
+          className={`cursor-pointer text-sm bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl text-black p-1 rounded-lg flex items-center transition duration-100 ${isLoading ? "opacity-50 pointer-events-none" : ""
             }`}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            ></path>
-          </svg>
+          <PlusIcon className="h-4 w-4 mr-1 text-gray-600" />
+
           {isLoading ? "Uploading..." : "Upload Files"}
         </label>
         <input
@@ -102,7 +93,7 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
         />
 
         {userData ? (<AccountDetails userData={userData} />) :
-          <div className="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mx-auto animate-spin"></div>
+          <div className="loader border-t-4 border-blue-500 rounded-full w-6 h-6 mx-auto animate-spin"></div>
         }
       </div>
     </div>

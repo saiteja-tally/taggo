@@ -3,6 +3,7 @@ import AddField from "./AddField";
 import TextareaAutosize from "react-textarea-autosize";
 import { BiComment } from "react-icons/bi";
 import XIcon from "./XIcon";
+import adjustTextareaHeight from "@/app/utils/adjustHeight";
 
 
 interface TableFieldsProps {
@@ -253,7 +254,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                         }`}
                     >
                       {colName !== "id" ? (
-                        <div className="flex items-center">
+                        <div className="flex justify-between">
                           {allowLabelling ? <TextareaAutosize
                             value={row[colName]?.text || ""}
                             className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -272,8 +273,10 @@ const TableFields: React.FC<TableFieldsProps> = ({
                             cols={maxLength(row[colName]?.text || "")}
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
-                          />:
-                            <p className="m-2 text-gray-800 text-left whitespace-nowrap">{row[colName]?.text}</p>}
+                          /> :
+                            row[colName].text ? <div className="m-1 p-1 text-gray-800 text-left min-w-10px whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
+                              {row[colName].text}
+                            </div> : null}
                           {row[colName]?.location?.pageNo !== 0 && allowLabelling ? (
                             <button
                               onClick={() =>
@@ -302,7 +305,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                             </button>
                           ) : (colName === currField && index === currIndex && allowReview) ?
                             <TextareaAutosize
-                              className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
+                              className="text-gray-800 bg-blue-50 m-1 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
                               value={row[colName].comment || ""}
                               placeholder="Add comment"
                               onChange={(e) => {
@@ -314,13 +317,17 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                   null,
                                   "add comment"
                                 )
+                                adjustTextareaHeight(e.target);
                               }
                               }
                               rows={1} // Default row count
+                              ref={(el) => {
+                                if (el) adjustTextareaHeight(el); // Adjust height on initial render
+                              }}
                               wrap="off"
                             /> :
                             row[colName].comment ? (
-                              <div className="flex items-center">
+                              <div className="flex items-center m-2">
                                 <BiComment className="text-gray-700" />
                               </div>
                             ) : null}

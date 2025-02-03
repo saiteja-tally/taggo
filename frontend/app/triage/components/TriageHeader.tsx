@@ -108,44 +108,43 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
   }
 
   return (
-    <div className="flex justify-between items-center bg-gradient-to-r from-blue-300 to-gray-200 p-1 sm:p-1 md:p-2 lg:p-3 xl:p-4 shadow-lg border-black border">
+    <div className="flex justify-between items-center bg-gradient-to-r from-blue-300 to-gray-200 p-1 sm:p-1 md:p-1 lg:p-1 xl:p-1 shadow-lg border-black border">
       <Link
         href="/"
         className="text-teal-900 hover:underline flex items-center"
         onClick={() => setLoading(true)}
       >
-        <HiHome className="m-1 text-2xl" />
-        <p className="m-1 text-lg font-semibold">Home</p>
+        <HiHome className="m-1 text-lg" />
+        <p className="m-1 text-sm font-semibold">Home</p>
       </Link>
 
-      {/* <h1 className="text-2xl font-bold text-teal-900">Taggo</h1> */}
       <div className="flex items-center text-teal-900 relative">
         <div className="p-1 relative group">
           <button
-            className="m-1 text-white bg-gradient-to-r from-blue-500 to-cyan-300 hover:bg-gradient-to-br px-4 py-2 rounded-lg shadow-md"
+            className="m-1 text-white bg-gradient-to-r from-blue-500 to-cyan-300 hover:bg-gradient-to-br px-2 py-1 rounded-lg shadow-md text-sm"
             onClick={handlePrevClick}
           >
             &lt; Prev
           </button>
         </div>
-        <div className="flex flex-col mx-3">
-          <div className="flex items-center space-x-2">
-            <p className="font-semibold text-lg">Doc ID:</p>
-            <p className="text-lg text-gray-700">{doc_id}</p>
+        <div className="flex flex-col mx-2">
+          <div className="flex items-center space-x-1">
+            <p className="font-semibold text-sm">Doc ID:</p>
+            <p className="text-sm text-gray-700">{doc_id}</p>
           </div>
-          <div className="flex m-1 items-center space-x-2">
+          <div className="flex m-1 items-center space-x-1">
             <FaHistory
-              className="text-xl text-gray-700 hover:text-blue-500 cursor-pointer"
+              className="text-lg text-gray-700 hover:text-blue-500 cursor-pointer"
               onClick={() => setShowHistory(!showHistory)}
             />
-            <p className="text-gray-700">{history ? `${history[history.length - 1]}` : ""}</p>
+            <p className="text-gray-700 text-sm">{history ? `${history[history.length - 1]}` : ""}</p>
           </div>
 
           {showHistory && (
-            <div className="absolute top-16 left-0 right-0 z-50 bg-white border border-gray-300 shadow-lg p-4 rounded-lg max-h-64 overflow-y-auto">
-              <h3 className="text-lg font-bold text-teal-900 mb-2">History</h3>
+            <div className="absolute top-16 left-0 right-0 z-50 bg-white border border-gray-300 shadow-lg p-2 rounded-lg max-h-64 overflow-y-auto">
+              <h3 className="text-sm font-bold text-teal-900 mb-2">History</h3>
               {history && history.length > 0 ? (
-                <ul className="text-gray-700">
+                <ul className="text-gray-700 text-sm">
                   {history.map((item, index) => (
                     <li key={index} className="py-1 border-b last:border-none">
                       {item}
@@ -153,14 +152,14 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
                   ))}
                 </ul>
               ) : (
-                <p className="text-gray-500">No history available.</p>
+                <p className="text-gray-500 text-sm">No history available.</p>
               )}
             </div>
           )}
         </div>
         <div className="p-1 relative group">
           <button
-            className="m-1 text-white bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-4 py-2 rounded-lg shadow-md"
+            className="m-1 text-white bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-2 py-1 rounded-lg shadow-md text-sm"
             onClick={handleNextClick}
           >
             Next &gt;

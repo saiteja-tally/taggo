@@ -5,6 +5,7 @@ import ToggleView from "./ToggleView";
 import { FaExclamationCircle } from "react-icons/fa";
 import AddField from "./AddField";
 import ROIField from "./ROIField";
+import ActionButtons from "./ActionButtons";
 
 
 const predefinedFields = {
@@ -267,132 +268,88 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
     []
   );
 
+  if (isLoading) { }
+
   return (
     <div
-      className={`bg-white bg-opacity-0 ${viewType === "General" ? "w-[30vw]" : "mt-2"
+      className={`bg-white bg-opacity-0  ${viewType === "General" ? "w-[30vw]" : "mt-2"
         } text-center font-mono`}
     >
-      {isLoading && <div className="flex items-center justify-center h-screen">
+      {isLoading ? <div className="flex items-center justify-center h-full">
         <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
 
-            </div>}
-      <div
-        className={`${viewType === "General"
-          ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4 order-last"
-          : ""
-          }`}
-      >
-        <div className="flex justify-between sm:text-xs md:text-xs lg:text-lg xl:text-lg ml-auto">
-          {viewType === "General" && (
-            <AddField
-              displayCols={displayFields}
-              handleAddField={handleAddField}
-              handleSelectAll={handleSelectAll}
-            />
-          )}
-          <ToggleView viewType={viewType} handleChangeView={handleChangeView} />
-
+      </div> :
+        <div className="h-full">
           <div
-            className="hover:bg-gray-200 rounded mr-2"
-            title="Download JSON"
-            onClick={() => downloadJSON(extractedData, `${doc_id}.json`)}
+            className={`${viewType === "General"
+              ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4 order-last"
+              : ""
+              }`}
           >
-            <svg
-              className="h-5 w-5 mt-2 text-black "
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path stroke="none" d="M0 0h24v24H0z" />
-              <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
-              <polyline points="7 11 12 16 17 11" />
-              <line x1="12" y1="4" x2="12" y2="16" />
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div
-        className={`${viewType === "General" ? "h-[80vh] overflow-y-auto" : ""
-          } border shadow-inner`}
-      >
-        {extractedData ?
-          Object.entries(extractedData).map(([fieldName, fieldValue]) =>
-            renderField(fieldName, fieldValue)
-          ) :
-          !isLoading &&
-          <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
-            <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
-            <p className="text-xl text-blue-600 mb-4">No data available</p>
-            <div className="space-x-4">
-              <button
-                onClick={() => startAnnotation()}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Annotate
-              </button>
-            </div>
-          </div>}
-      </div>
-      {(status === "uploaded" || status === 'pre-labelled') &&
-        (<div className="p-4 flex justify-center space-x-4">
-          <div className="relative group">
-            <button
-              onClick={() => handleSave("labelled")}
-              disabled={!dataChanged}
-              className={`${dataChanged
-                ? "bg-blue-500 hover:bg-blue-700"
-                : "bg-gray-300 text-gray-400 cursor-not-allowed"
-                } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300`}
-            >
-              Save
-            </button>
-            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded py-1 px-2">
-              Alt+S
-            </div>
-          </div>
-          <div className="relative group">
-            <button
-              onClick={handleDiscard}
-              disabled={!dataChanged}
-              className={`${dataChanged
-                ? "bg-red-500 hover:bg-red-700"
-                : "bg-gray-300 text-gray-400 cursor-not-allowed"
-                } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300`}
-            >
-              Discard
-            </button>
-            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded py-1 px-2">
-              Alt+D
-            </div>
-          </div>
-        </div>)}
-      {(status === 'labelled') && <div>
-        <div className="p-4 flex justify-center space-x-4">
-          <button
-            onClick={() => handleSave("rejected")}
-            disabled={!dataChanged}
-            className={`${dataChanged
-              ? "bg-red-500 hover:bg-red-700"
-              : "bg-gray-300 text-gray-400 cursor-not-allowed"
-              } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300`}
-          >
-            Reject
-          </button>
-          <button
-            onClick={() => handleSave("accepted")}
-            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
-            disabled={dataChanged}
+            <div className="flex justify-between sm:text-xs md:text-xs lg:text-lg xl:text-lg ml-auto">
+              {viewType === "General" && (
+                <AddField
+                  displayCols={displayFields}
+                  handleAddField={handleAddField}
+                  handleSelectAll={handleSelectAll}
+                />
+              )}
+              <ToggleView viewType={viewType} handleChangeView={handleChangeView} />
 
+              <div
+                className="hover:bg-gray-200 rounded mr-2"
+                title="Download JSON"
+                onClick={() => downloadJSON(extractedData, `${doc_id}.json`)}
+              >
+                <svg
+                  className="h-5 w-5 mt-2 text-black "
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" />
+                  <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+                  <polyline points="7 11 12 16 17 11" />
+                  <line x1="12" y1="4" x2="12" y2="16" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            className={`${viewType === "General" ? "h-[77vh] overflow-y-auto" : ""
+              } border shadow-inner shadow-lg border-gray-300 rounded-md p-2`}
           >
-            Accept
-          </button>
+            {extractedData ?
+              Object.entries(extractedData).map(([fieldName, fieldValue]) =>
+                renderField(fieldName, fieldValue)
+              ) :
+              !isLoading &&
+              <div className="flex flex-col items-center justify-center h-screen w-[30vw]">
+                <FaExclamationCircle className="text-5xl text-blue-400 mb-4" />
+                <p className="text-xl text-blue-600 mb-4">No data available</p>
+                <div className="space-x-4">
+                  <button
+                    onClick={() => startAnnotation()}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Annotate
+                  </button>
+                </div>
+              </div>}
+          </div>
+          <ActionButtons
+            allowLabelling={allowLabelling}
+            allowReview={allowReview}
+            handleSave={handleSave}
+            handleReset={handleDiscard}
+            dataChanged={dataChanged} />
         </div>
-      </div>}
+      }
     </div>
   );
 };

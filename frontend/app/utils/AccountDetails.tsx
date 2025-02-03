@@ -20,14 +20,14 @@ const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboa
     }, []);
     
     return(
-    <div className="absolute top-full mt-2 right-0 bg-white border border-gray-300 rounded-md shadow-lg p-4 w-48 z-50">
-        <p className="text-gray-700 mb-4 text-center">
-            <strong>{userData.username}</strong>
+    <div className="absolute top-full mt-2 right-0 bg-blue-100 border border-blue-300 rounded-lg shadow-lg p-2 w-40 z-40">
+        <p className="text-blue-700 mb-4 text-xl text-center font-bold">
+            {userData.username}
         </p>
         {userData.is_superuser && (
             <Link href="/dashboard"
                 onClick={onDashboardClick}
-                className="block text-lg font-semibold text-blue-700 hover:text-blue-900 transition duration-150 mb-2 text-center flex items-center justify-center"
+                className="block text-sm font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-2 text-center flex items-center justify-center"
             >
                 Dashboard
                 {dashboardLoading && (
@@ -36,11 +36,11 @@ const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboa
             </Link>
         )}
         <Link href="/set-password"
-            className="block text-lg font-semibold text-blue-700 hover:text-blue-900 transition duration-150 mb-2 text-center">
+            className="block text-sm font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-2 text-center">
             Change Password
         </Link>
         <button
-            className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 focus:ring-2 focus:ring-red-400 transition duration-150 flex items-center justify-center"
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 transition duration-150 flex items-center justify-center"
             onClick={handleLogout}
         >
             Logout
@@ -55,8 +55,6 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ userData }) => {
     const [showLogout, setShowLogout] = useState<boolean>(false);
     const [dashboardLoading, setDashboardLoading] = useState<boolean>(false);
     const menuRef = useRef<HTMLDivElement>(null);
-
-    
 
     const handleClickOutside = useCallback((event: MouseEvent) => {
         if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -81,7 +79,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ userData }) => {
 
     return (
         <div
-            className="ml-4 text-lg font-semibold text-blue-900 flex items-center relative"
+            className="ml-4 font-semibold text-blue-900 flex items-center relative"
             title={userData.username ? `Logged in as ${userData.username}` : 'Welcome!'}
             aria-label={userData.username ? `Logged in as ${userData.username}` : 'Welcome!'}
         >
