@@ -187,4 +187,4 @@ EMAIL_HOST_USER = 'tally.ai.doc.ai@gmail.com'
 EMAIL_HOST_PASSWORD = 'hqcdunhrvydjvnww'
 DEFAULT_FROM_EMAIL = 'tally.ai.doc.ai@gmail.com'
 
-FRONTEND_URL = 'http://localhost:3000'
+FRONTEND_URL = 'http://10.96.2.134:3000'
