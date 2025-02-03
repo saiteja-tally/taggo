@@ -1,9 +1,11 @@
 import React from "react";
 import { BiComment } from "react-icons/bi";
 import TextareaAutosize from "react-textarea-autosize";
+import XIcon from "./XIcon";
 
 interface SingleValuedFieldProps {
-  status: string | null,
+  allowLabelling: boolean;
+  allowReview: boolean;
   fieldName: string;
   fieldValue: Record<string, any>;
   selectedField: string | null;
@@ -22,7 +24,8 @@ interface SingleValuedFieldProps {
 }
 
 const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
-  status,
+  allowLabelling,
+  allowReview,
   fieldName,
   fieldValue,
   selectedField,
@@ -55,7 +58,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
         <p className="font-semibold m-1 text-indigo-700 text-center">
           {fieldName}{fieldValue.conf && <span className="text-sm m-2 text-blue-400">({fieldValue.conf?.toFixed(2)})</span>}
         </p>
-        {(status == "uploaded" || status == "pre-labelled") ? fieldValue.location?.pageNo !== 0 && (
+        {allowLabelling ? fieldValue.location?.pageNo !== 0 && (
           <button
             onClick={(e) =>
               handleSingleValuedFieldChange(
@@ -74,29 +77,11 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
               className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
             />
             {fieldName === selectedField && (
-              <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center opacity-0 transition-opacity duration-300 ease-in-out hover:opacity-100">
-                <div className="text-red-500">
-                  <svg
-                    className="h-7 w-7"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </div>
-              </div>
+              <XIcon />
             )}
           </button>
         ) :
-          (selectedField === fieldName && status != 'accepted') ? (
+          (selectedField === fieldName && allowReview) ? (
             <TextareaAutosize
               className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
               value={fieldValue.comment || ""}
@@ -120,12 +105,11 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           ) : null}
       </div>
 
-      <TextareaAutosize
+      {allowLabelling ? <TextareaAutosize
         className={`text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full ${selectedField === fieldName ? "border border-red-300" : ""
           }`}
         value={fieldValue.text}
         placeholder=""
-        disabled={status != "uploaded" && status != "pre-labelled"}
         onChange={(e) => {
           handleSingleValuedFieldChange(
             fieldName,
@@ -140,7 +124,8 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           if (el) adjustTextareaHeight(el); // Adjust height on initial render
         }}
         wrap="off"
-      />
+      />:
+        <p className="m-1 text-gray-800 text-left whitespace-nowrap">{fieldValue.text}</p>}
     </div>
   );
 };

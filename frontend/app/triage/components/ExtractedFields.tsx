@@ -103,16 +103,14 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   handleNestedRowDelete,
   handleNestedRowAdd,
   isLoading,
-  nodata,
   dataChanged,
   handleSave,
   handleDiscard,
 }) => {
-  // Function to check if an object is empty
-  const isEmptyObject = (obj: any) =>
-    Object.keys(obj).length === 0 && obj.constructor === Object;
 
   const [displayFields, setDisplayFields] = useState<DisplayFields>({});
+  const [allowLabelling, setAllowLabelling] = useState<boolean>(false);
+  const [allowReview, setAllowReview] = useState<boolean>(false);
 
   useEffect(() => {
     const initialDisplayFields: DisplayFields = {};
@@ -144,6 +142,16 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
 
     setDisplayFields(initialDisplayFields);
   }, [extractedData]);
+
+  useEffect(() => {
+    if (status === "uploaded" || status === "pre-labelled") {
+      setAllowLabelling(true);
+      setAllowReview(false);
+    } else if (status === "labelled") {
+      setAllowLabelling(false);
+      setAllowReview(true);
+    }
+  }, [status]);
 
   const handleAddField = useCallback((fieldName: string) => {
     setDisplayFields((prevData) => ({
@@ -180,7 +188,8 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       ) {
         return (
           <SingleValuedField
-            status={status}
+            allowLabelling={allowLabelling}
+            allowReview={allowReview}
             key={fieldName}
             fieldName={fieldName}
             fieldValue={fieldValue}
@@ -194,7 +203,8 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <TableFields
-              status={status}
+              allowLabelling={allowLabelling}
+              allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
               handleNestedFieldChange={handleNestedFieldChange}
@@ -209,7 +219,8 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <TableFields
-            status={status}
+              allowLabelling={allowLabelling}
+              allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
               handleNestedFieldChange={handleNestedFieldChange}
@@ -224,6 +235,8 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <ROIField
+              allowLabelling={allowLabelling}
+              allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
               handleNestedFieldChange={handleNestedFieldChange}

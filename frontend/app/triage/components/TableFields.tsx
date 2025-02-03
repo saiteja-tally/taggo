@@ -2,10 +2,12 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import AddField from "./AddField";
 import TextareaAutosize from "react-textarea-autosize";
 import { BiComment } from "react-icons/bi";
+import XIcon from "./XIcon";
 
 
 interface TableFieldsProps {
-  status: string | null;
+  allowLabelling: boolean;
+  allowReview: boolean;
   fieldName: string;
   fieldValue: any[];
   handleNestedFieldChange: (
@@ -31,7 +33,8 @@ interface DisplayCols {
 }
 
 const TableFields: React.FC<TableFieldsProps> = ({
-  status,
+  allowLabelling,
+  allowReview,
   fieldName,
   fieldValue,
   handleNestedFieldChange,
@@ -251,7 +254,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                     >
                       {colName !== "id" ? (
                         <div className="flex items-center">
-                          <TextareaAutosize
+                          {allowLabelling ? <TextareaAutosize
                             value={row[colName]?.text || ""}
                             className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                             onChange={(e) => {
@@ -264,14 +267,14 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 "update value"
                               );
                             }}
-                            disabled={status != "uploaded" && status != "pre-labelled"}
                             wrap="off"
                             rows={1}
                             cols={maxLength(row[colName]?.text || "")}
                             onFocus={() => (textAreaFocused.current = true)}
                             onBlur={() => (textAreaFocused.current = false)}
-                          />
-                          {row[colName]?.location?.pageNo !== 0 && status && status in ['uploaded', 'pre-labelled'] ? (
+                          />:
+                            <p className="m-2 text-gray-800 text-left whitespace-nowrap">{row[colName]?.text}</p>}
+                          {row[colName]?.location?.pageNo !== 0 && allowLabelling ? (
                             <button
                               onClick={() =>
                                 handleNestedFieldChange(
@@ -294,28 +297,10 @@ const TableFields: React.FC<TableFieldsProps> = ({
                                 className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
                               />
                               {colName === currField && index === currIndex && (
-                                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center opacity-0 transition-opacity duration-300 ease-in-out hover:opacity-100">
-                                  <div className="text-red-500">
-                                    <svg
-                                      className="h-7 w-7"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      aria-hidden="true"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                      />
-                                    </svg>
-                                  </div>
-                                </div>
+                                <XIcon />
                               )}
                             </button>
-                          ) : (colName === currField && index === currIndex)?
+                          ) : (colName === currField && index === currIndex && allowReview) ?
                             <TextareaAutosize
                               className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"
                               value={row[colName].comment || ""}
@@ -333,12 +318,12 @@ const TableFields: React.FC<TableFieldsProps> = ({
                               }
                               rows={1} // Default row count
                               wrap="off"
-                            />: 
+                            /> :
                             row[colName].comment ? (
-                                        <div className="flex items-center">
-                                          <BiComment className="text-gray-700" />
-                                        </div>
-                                      ) : null}
+                              <div className="flex items-center">
+                                <BiComment className="text-gray-700" />
+                              </div>
+                            ) : null}
                         </div>
                       ) : (
                         row[colName].text
