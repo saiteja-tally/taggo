@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { HiHome } from "react-icons/hi";
 import { FaHistory } from "react-icons/fa";
-import BACKEND_URLS from "@/app/BackendUrls";
 import axiosInstance from "@/app/utils/axiosInstance";
 
 interface TriageHeaderProps {
@@ -22,10 +21,10 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       return;
     }
     try {
-      const response = await axiosInstance.get(`${BACKEND_URLS.get_next}/${doc_id}/`, {
+      const response = await axiosInstance.get(`/get_next/${doc_id}/`, {
         headers: {
           "Content-Type": "application/json",
-        }
+        },
       });
 
       if (response.status !== 200) {
@@ -54,7 +53,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       return;
     }
     try {
-      const response = await axiosInstance.get(`${BACKEND_URLS.get_prev}/${doc_id}/`, {
+      const response = await axiosInstance.get(`/get_prev/${doc_id}/`, {
         headers: {
           "Content-Type": "application/json",
         },

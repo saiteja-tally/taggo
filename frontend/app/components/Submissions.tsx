@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Select from "react-select";
-import BACKEND_URLS from "../BackendUrls";
 import axiosInstance from "../utils/axiosInstance";
 import SmartAssign from "../utils/SmartAssign";
 
@@ -51,7 +50,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
       searchID = null;
     }
     try {
-      const response = await axiosInstance.get(`${BACKEND_URLS.get_annotations}/${assignee}/${status}/${perPage}/${page}/${searchID}`);
+      const response = await axiosInstance.get(`/get_annotations/${assignee}/${status}/${perPage}/${page}`);
       if (response.status !== 200) {
         throw new Error("Failed to fetch data");
       }
@@ -83,7 +82,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
 
   const handleUserChange = async (id: string, username: string | null) => {
     try {
-      const response = await axiosInstance.post(BACKEND_URLS.assign_annotation, {
+      const response = await axiosInstance.post("/assign_annotation", {
         id,
         username,
       });
@@ -143,7 +142,11 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
 
   const handleSmartAssign = async (status: string | null, userGroup: string | null, percentage: number | null) => {
     try {
-      const response = await axiosInstance.post(BACKEND_URLS.smart_assign, { status, userGroup, percentage });
+      const response = await axiosInstance.post("/smart_assign", {
+        status,
+        userGroup,
+        percentage,
+      });
       if (response.status === 200) {
         fetchAnnotations("all", "all", page, null);
         setShowDialog(false);

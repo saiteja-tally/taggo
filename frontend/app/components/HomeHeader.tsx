@@ -35,7 +35,7 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
 
         try {
           const response = await axiosInstance.post(
-            BACKEND_URLS.upload_document,
+            '/upload_document',
             formData, // Pass FormData directly
             {
               headers: {

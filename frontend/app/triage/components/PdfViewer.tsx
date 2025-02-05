@@ -3,7 +3,6 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import PdfTools from "./PdfTools";
-import BACKEND_URLS from "@/app/BackendUrls";
 import axiosInstance from "@/app/utils/axiosInstance";
 import './styles.css'; // Assuming this file contains the .no-select class
 
@@ -288,9 +287,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
           formData.append("file", blob, "cropped_image.png");
 
           try {
-            const { data } = await axiosInstance.post(BACKEND_URLS.get_ocr_text, formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
+            const { data } = await axiosInstance.post(
+              "/get_ocr_text",
+              formData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              }
+            );
 
             if (["Table", "LedgerDetails", "ROI"].includes(selectedField)) {
               handleNestedFieldChange(selectedField, selectedRow, colName, data.text, null, "update value");

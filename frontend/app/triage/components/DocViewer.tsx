@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import FileSaver from "file-saver";
 import PdfViewer from "./PdfViewer";
-import BACKEND_URLS from "@/app/BackendUrls";
 
 interface DocViewerProps {
   doc_id: string | null;
@@ -38,7 +37,7 @@ const DocViewer: React.FC<DocViewerProps> = ({
   colName,
   dataChanged,
 }) => {
-  const fileUrl = `${BACKEND_URLS.get_document}/${doc_id}`;
+  const fileUrl = `/get_document/${doc_id}`;
   
 
   const downloadFile = (file: string, docType: string) => {

@@ -1,7 +1,6 @@
 "use client"
 import { useState } from 'react';
 import axios from 'axios';
-import BACKEND_URLS from '../BackendUrls';
 import LoginHeader from './components/LoginHeader';
 
 const Login = () => {
@@ -19,9 +18,9 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post<LoginResponse>(BACKEND_URLS.fetchAccessToken, {
-                username,
-                password,
+            const response = await axios.post<LoginResponse>("/token/", {
+              username,
+              password,
             });
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);

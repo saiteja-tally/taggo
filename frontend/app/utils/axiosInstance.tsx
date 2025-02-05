@@ -1,9 +1,10 @@
 // utils/axiosInstance.js
 import axios from 'axios';
-import BACKEND_URLS from '../BackendUrls';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const axiosInstance = axios.create({
-    baseURL: BACKEND_URLS.base,
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -38,7 +39,7 @@ axiosInstance.interceptors.response.use(
                     throw new Error('No refresh token available');
                 }
 
-                const response = await axios.post(BACKEND_URLS.refreshAccessToken, {
+                const response = await axios.post('/token/refresh/', {
                     refresh: refreshToken,
                 });
 

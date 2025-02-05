@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import DocViewer from "@/app/triage/components/DocViewer";
 import ExtractedFields from "@/app/triage/components/ExtractedFields";
-import BACKEND_URLS from "@/app/BackendUrls";
 import axiosInstance from "@/app/utils/axiosInstance";
 
 interface InteractiveSpaceProps {
@@ -193,7 +192,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
     try {
       const response = await axiosInstance.post(
-        `${BACKEND_URLS.save_json}/${status}/${doc_id}/`,
+        `save_json/${status}/${doc_id}/`,
         JSON.stringify(extractedData)
       );
 
@@ -212,9 +211,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get(
-        `${BACKEND_URLS.get_json}/${status}/${doc_id}`
-      );
+      const response = await axiosInstance.get(`/get_json/${status}/${doc_id}`);
       const data = await response.data.data;
       if (data && !data.detail) {
         setExtractedData(data);

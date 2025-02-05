@@ -1,7 +1,6 @@
 "use client"
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import BACKEND_URLS from '../BackendUrls';
 
 export default function SetPassword() {
     const searchParams = useSearchParams();
@@ -21,10 +20,15 @@ export default function SetPassword() {
             setMessage('Passwords do not match');
             return;
         }
-        const response = await fetch(BACKEND_URLS.set_password, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uid, token, password }),
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+        if (!apiUrl) {
+            setMessage('API base URL is not defined');
+            return;
+        }
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid, token, password }),
         });
 
         const data: SetPasswordResponse = await response.json();
