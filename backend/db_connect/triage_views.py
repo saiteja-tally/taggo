@@ -13,26 +13,6 @@ logger = logging.getLogger(__name__)
 
 # Upload file to S3
 s3 = boto3.client('s3')
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def accept_annotation(request):
-    if not request.user.groups.filter(name='reviewers').exists() and not request.user.is_superuser:
-        return JsonResponse({'status': 'error', 'message': 'Only reviewers can accept annotations'}, status=403)
-
-    id = request.data['doc_id']
-    try:
-        annotation = Annotation.objects.get(id=id)
-        annotation.status = 'done'
-        annotation.assigned_to_user = None
-        ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
-        annotation.history.append(f'{ist_time}: accepted by {request.user.username}')
-        annotation.save()
-        return JsonResponse({'status': 'success', 'message': 'Annotation accepted'}, safe=False)
-
-    except Exception as e:
-        logger.error(f"Error accepting annotation: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
@@ -74,13 +54,10 @@ def get_json(request, status: str, id: str):
         if status == 'pre-labelled':
             bucket = settings.S3_PRE_LABEL_BUCKET
         
-        elif status == 'labelled':
-            bucket = settings.S3_LABELLING_BUCKET
-        
-        elif status == 'rejected':
+        elif status in ['in-labelling', 'in-review', 'accepted']:
             bucket = settings.S3_LABELLING_BUCKET
 
-        elif status == 'accepted':
+        elif status == 'done':
             bucket = settings.S3_LABEL_BUCKET
 
         else:
@@ -102,11 +79,11 @@ def get_json(request, status: str, id: str):
 def save_json(request , status: str, id: str):
     try:
         json_data = request.body.decode('utf-8')
-        if status == 'labelled' or status == 'rejected':
-            user = request.user.username
+        user = request.user.username
+
+        if status in ['in-labelling', 'in-review', 'accepted']:
             bucket = settings.S3_LABELLING_BUCKET
-        elif status == 'accepted':
-            user = request.user.username
+        elif status == 'done':
             bucket = settings.S3_LABEL_BUCKET
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
@@ -118,9 +95,40 @@ def save_json(request , status: str, id: str):
         # update annotation record
         annotation = Annotation.objects.get(id=id)
         annotation.status = status
-        annotation.assigned_to_user = None
+        assigned_to_user = None
+        if status == 'in-labelling':
+            annotation.labelled_by = request.user
+            if annotation.labelled_by:
+                annotation.assigned_to_user = annotation.labelled_by
+                assigned_to_user = annotation.assigned_to_user
+            else:
+                labellers = User.objects.filter(groups__name='labellers')
+                if labellers.exists():
+                    annotation.assigned_to_user = labellers.order_by('?').first()
+                    assigned_to_user = annotation.assigned_to_user
+                else:
+                    annotation.assigned_to_user = None
+        elif status == 'in-review':
+            annotation.labelled_by = request.user
+            if annotation.reviewed_by:
+                annotation.assigned_to_user = annotation.reviewed_by
+                assigned_to_user = annotation.assigned_to_user
+            else:
+                reviewers = User.objects.filter(groups__name='reviewers')
+                if reviewers.exists():
+                    annotation.assigned_to_user = reviewers.order_by('?').first()
+                    assigned_to_user = annotation.assigned_to_user
+                else:
+                    annotation.assigned_to_user = None
+        elif status == 'accepted':
+            annotation.reviewed_by = request.user
+        
+        
+
         ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
         annotation.history.append(f'{ist_time}: {status} by {user}')
+        if assigned_to_user:
+            annotation.history.append(f'{ist_time}: assigned to {assigned_to_user.username}')
         annotation.save()
 
         return JsonResponse({'status': 'success', 'message': f'{status} JSON data saved successfully'}, safe=False)

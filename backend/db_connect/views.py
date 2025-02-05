@@ -24,7 +24,7 @@ s3 = boto3.client('s3')
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_annotations(request, assignee:str, status: str, perPage: int, page: int):
+def get_annotations(request, assignee:str, status: str, perPage: int, page: int, searchID: str):
     if status == "all":
         if request.user.is_superuser:
             if assignee == "all":
@@ -45,6 +45,9 @@ def get_annotations(request, assignee:str, status: str, perPage: int, page: int)
                 annotations_list = Annotation.objects.filter(status=status, assigned_to_user__username=assignee).order_by('-inserted_time')
         else:
             annotations_list = Annotation.objects.filter(assigned_to_user=request.user, status=status).order_by('-inserted_time')
+
+    if searchID != 'null':
+        annotations_list = annotations_list.filter(id__icontains=searchID)
 
     paginator = Paginator(annotations_list, perPage)  # Use perPage for annotations per page
 
@@ -136,14 +139,14 @@ def assign_annotation(request):
     if request.method == 'POST':
         try:
             annotation_id = request.data['id']
-            user_id = request.data['user_id']
+            username = request.data['username']
             assigned_by = request.user
             annotation = Annotation.objects.get(id=annotation_id)
-            if user_id == None:
+            if username == None:
                 assign_to_user = None
                 history_message = f'unassigned by {assigned_by.username}'
             else:
-                assign_to_user = User.objects.get(id=user_id)
+                assign_to_user = User.objects.get(username=username)
                 assigned_to_username = assign_to_user.username
                 history_message = f'assigned to {assigned_to_username} by {assigned_by.username}'
 
@@ -153,38 +156,13 @@ def assign_annotation(request):
             annotation.history.append(f'{ist_time}: {history_message}')
             annotation.save()
 
-            return JsonResponse({'status': 'success', 'message': f'Annotation {annotation_id} assigned to user {user_id}'}, safe=False)
+            return JsonResponse({'status': 'success', 'message': f'Annotation {annotation_id} assigned to user {username}'}, safe=False)
 
         except Exception as e:
             logger.error(f"Error assigning annotation: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_users(request):
-    try:
-        # Ensure only superusers can access this endpoint
-        if not request.user.is_superuser:
-            return JsonResponse({'status': 'error', 'message': 'Only superusers can view users'}, status=403)
-
-        # Optimize group fetching with prefetch_related
-        users = User.objects.filter(is_superuser=False).prefetch_related('groups').values('id', 'username')
-        user_data = [
-            {
-                'id': user['id'],
-                'username': user['username'],
-                'groups': list(User.objects.get(id=user['id']).groups.values_list('name', flat=True))
-            }
-            for user in users
-        ]
-
-        return JsonResponse({'status': 'success', 'data': user_data})
-    
-    except Exception as e:
-        logger.error(f"Error retrieving users for {request.user.username}: {e}")
-        return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred.'}, status=500)
     
 
     
@@ -223,7 +201,7 @@ def smart_assign(request):
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_smart_assigin_data(request):
+def get_smart_assign_data(request):
     all_groups = Group.objects.all().values('name', 'user__username')
     groups_with_users = {}
     for group in all_groups:

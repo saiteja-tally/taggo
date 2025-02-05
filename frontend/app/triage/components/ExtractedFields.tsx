@@ -6,6 +6,7 @@ import { FaExclamationCircle } from "react-icons/fa";
 import AddField from "./AddField";
 import ROIField from "./ROIField";
 import ActionButtons from "./ActionButtons";
+import { stat } from "fs";
 
 
 const predefinedFields = {
@@ -145,15 +146,19 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   }, [extractedData]);
 
   useEffect(() => {
-    if (status === "uploaded" || status === "pre-labelled") {
+    if (!status){
+      return;
+    }
+    if (['uploaded', 'pre-labelled', 'labelling', 'rejected'].includes(status)) {
       setAllowLabelling(true);
       setAllowReview(false);
-    } else if (status === "labelled") {
+    } else if (["labelled", 'reviewing', 'accepted', 'done'].includes(status)) {
       setAllowLabelling(false);
-      setAllowReview(true);
+      setAllowReview(true);   
     }
+    console.log(status, true, false);
   }, [status]);
-
+  
   const handleAddField = useCallback((fieldName: string) => {
     setDisplayFields((prevData) => ({
       ...prevData,
@@ -272,7 +277,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
 
   return (
     <div
-      className={`bg-white bg-opacity-0  ${viewType === "General" ? "w-[30vw]" : "mt-2"
+      className={`bg-white bg-opacity-0  ${viewType === "General" ? "w-[29vw]" : "mt-2"
         } text-center font-mono`}
     >
       {isLoading ? <div className="flex items-center justify-center h-full">
@@ -322,7 +327,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
           </div>
           <div
             className={`${viewType === "General" ? "h-[77vh] overflow-y-auto" : ""
-              } border shadow-inner shadow-lg border-gray-300 rounded-md p-2`}
+              } border border-gray-300 rounded-md p-2`}
           >
             {extractedData ?
               Object.entries(extractedData).map(([fieldName, fieldValue]) =>

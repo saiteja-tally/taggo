@@ -86,7 +86,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
     setExtractedData((prevData) => {
       const newData = { ...prevData };
-      const updatedItem = { ...newData[fieldName][index]};
+      const updatedItem = { ...newData[fieldName][index] };
       if (instruction === "update value") {
         updatedItem[colName] = {
           ...updatedItem[colName],
@@ -121,7 +121,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         updatedTable.splice(index, 1);
         newData[fieldName] = updatedTable;
       }
-      else{
+      else {
         handleNestedRowAdd(fieldName)
         handleNestedRowDelete(fieldName, index)
       }
@@ -131,7 +131,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
     setDataChanged(true);
   };
-  
+
 
   const handleNestedRowAdd = (fieldName: string) => {
     setExtractedData((prevData) => {
@@ -161,6 +161,36 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
   };
 
   const handleSave = async (status: string) => {
+    if (['rejected', 'labelled'].includes(status)) {
+      // go though all the fields and check if any field has comment non-empty. don't allow to reject if no field has comment
+      let commentList = []
+      for (const field in extractedData) {
+        if (Array.isArray(extractedData[field])) {
+          for (const item of extractedData[field]) {
+            for (const subField in item) {
+              if (item[subField].comment) {
+                commentList.push(`${field}[${subField}]: ${item[subField].comment}`)
+              }
+            }
+          }
+        } else if (extractedData[field].comment) {
+          commentList.push(`${field}: ${extractedData[field].comment}`)
+        }
+      }
+
+      if (status == 'rejected' && commentList.length == 0) {
+        alert("Please add a comment before rejecting")
+        return
+      }
+
+      if (status == 'labelled' && commentList.length > 0) {
+        console.log(commentList)
+        alert("Please check all comments are removed before submitting\n\n" + commentList.join("\n"))
+        return
+      }
+    }
+
+
     try {
       const response = await axiosInstance.post(
         `${BACKEND_URLS.save_json}/${status}/${doc_id}/`,

@@ -7,11 +7,16 @@ class Annotation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     assigned_to_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     history = models.JSONField(default=list)
+    labelled_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='labelled_by')
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_by')
     STATUS_CHOICES = [
         ('uploaded', 'Uploaded'),
         ('pre-labelled', 'Pre-labelled'),
+        ('labelling', 'Labelling'),
         ('labelled', 'Labelled'),
         ('reviewed', 'Reviewed'),
+        ('rejected', 'Rejected'),
+        ('accepted', 'Accepted'),
         ('done', 'Done'),
     ]
     inserted_time = models.DateTimeField(auto_now_add=True)

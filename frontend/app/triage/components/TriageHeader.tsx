@@ -35,7 +35,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       if (data.status === "success") {
         const annotation = data.annotation;
         if (annotation) {
-          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;;
+          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;
         }
         else {
           alert("You are at the last document");
@@ -68,7 +68,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       if (data.status === "success") {
         const annotation = data.annotation;
         if (annotation) {
-          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;;
+          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;
         }
         else {
           alert("You are at the first document");
@@ -80,7 +80,6 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
       console.error("Failed to send option:", error);
     }
   };
-
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -103,36 +102,34 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
-        </div>
+      </div>
     );
   }
 
   return (
-    <div className="flex justify-between items-center bg-gradient-to-r from-blue-300 to-gray-200 p-1 sm:p-1 md:p-1 lg:p-1 xl:p-1 shadow-lg border-black border">
+    <div className="flex justify-between items-center bg-gradient-to-r from-blue-300 to-gray-200 p-2 shadow-lg border-black border">
       <Link
         href="/"
         className="text-teal-900 hover:underline flex items-center"
         onClick={() => setLoading(true)}
       >
-        <HiHome className="m-1 text-lg" />
-        <p className="m-1 text-sm font-semibold">Home</p>
+        <HiHome className="text-lg" />
+        <p className="text-sm font-semibold">Home</p>
       </Link>
 
       <div className="flex items-center text-teal-900 relative">
-        <div className="p-1 relative group">
-          <button
-            className="m-1 text-white bg-gradient-to-r from-blue-500 to-cyan-300 hover:bg-gradient-to-br px-2 py-1 rounded-lg shadow-md text-sm"
-            onClick={handlePrevClick}
-          >
-            &lt; Prev
-          </button>
-        </div>
+        <button
+          className="bg-gradient-to-r from-blue-500 to-cyan-300 hover:bg-gradient-to-br px-2 py-1 rounded-lg shadow-md text-sm"
+          onClick={handlePrevClick}
+        >
+          &lt; Prev
+        </button>
         <div className="flex flex-col mx-2">
           <div className="flex items-center space-x-1">
             <p className="font-semibold text-sm">Doc ID:</p>
             <p className="text-sm text-gray-700">{doc_id}</p>
           </div>
-          <div className="flex m-1 items-center space-x-1">
+          <div className="flex items-center space-x-1">
             <FaHistory
               className="text-lg text-gray-700 hover:text-blue-500 cursor-pointer"
               onClick={() => setShowHistory(!showHistory)}
@@ -157,14 +154,12 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, us
             </div>
           )}
         </div>
-        <div className="p-1 relative group">
-          <button
-            className="m-1 text-white bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-2 py-1 rounded-lg shadow-md text-sm"
-            onClick={handleNextClick}
-          >
-            Next &gt;
-          </button>
-        </div>
+        <button
+          className="bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-2 py-1 rounded-lg shadow-md text-sm"
+          onClick={handleNextClick}
+        >
+          Next &gt;
+        </button>
       </div>
     </div>
   );

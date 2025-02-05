@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Select from "react-select";
 import BACKEND_URLS from "../BackendUrls";
-import { FaSpinner } from "react-icons/fa";
-// import { FaExclamationCircle } from "react-icons/fa"; // Import icon from react-icons library
 import axiosInstance from "../utils/axiosInstance";
 import SmartAssign from "../utils/SmartAssign";
 
@@ -36,20 +34,24 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [hoveredRowID, sethoveredRowID] = useState<string | null>(null);
-  const [users, setUsers] = useState<Option[]>([]);
+  const [groupsWithUsers, setGroupsWithUsers] = useState<{ [key: string]: string[] }>({});
   const [selectedAssignee, setSelectedAssignee] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [serachID, setSearchID] = useState<string | null>(null);
 
   // Filter states for each column
   const [triageReady, setTriageReady] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const perPage = 20;
 
-  const fetchAnnotations = async (assignee: string, status: string, page: number) => {
+  const fetchAnnotations = async (assignee: string, status: string, page: number, searchID: string | null) => {
     setLoading(true);
     setError(null);
+    if (searchID === "") {
+      searchID = null;
+    }
     try {
-      const response = await axiosInstance.get(`${BACKEND_URLS.get_annotations}/${assignee}/${status}/${perPage}/${page}`);
+      const response = await axiosInstance.get(`${BACKEND_URLS.get_annotations}/${assignee}/${status}/${perPage}/${page}/${searchID}`);
       if (response.status !== 200) {
         throw new Error("Failed to fetch data");
       }
@@ -64,43 +66,38 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   };
 
   useEffect(() => {
-    fetchAnnotations(selectedAssignee, selectedStatus, page);
-  }, [page, selectedAssignee, selectedStatus]);
+    fetchAnnotations(selectedAssignee, selectedStatus, page, serachID);
+  }, [page, selectedAssignee, selectedStatus, serachID]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axiosInstance.get(BACKEND_URLS.get_users);
-        if (response.status !== 200) {
-          throw new Error("Failed to fetch users");
-        }
-        const data = response.data;
-        const usersData = data.data.map((user: any) => ({ value: user.id, label: user.username, group: user.groups }));
-        setUsers([...usersData, { value: null, label: "unassigned" }]);
-      } catch (error: any) {
-        setData([]);
-        console.error("Failed to fetch users:", error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
+        const fetchGroupsWithUsers = async () => {
+            const response = await axiosInstance.get('/get_groups_with_users');
+            setGroupsWithUsers(response.data);
+        };
+        fetchGroupsWithUsers();
+    }, []
+    )
 
   // Extract unique values for dropdowns
   const uniqueStatuses = ['uploaded', 'pre-labelled', 'labelled', 'accepted', 'rejected', 'done', 'all'].map((status) => ({ value: status, label: status }));
 
-  const handleUserChange = async (id: string, user_id: number | null) => {
+  const handleUserChange = async (id: string, username: string | null) => {
     try {
       const response = await axiosInstance.post(BACKEND_URLS.assign_annotation, {
         id,
-        user_id,
+        username,
       });
+
+      console.log(groupsWithUsers, id, username);
       if (response.status === 200) {
         console.log("User assigned successfully");
-        setData((prevData) =>
-          prevData.map((annotation) =>
+        setData((prevData: Annotation[]) =>
+          prevData.map((annotation: Annotation) =>
             annotation.id === id
-              ? { ...annotation, assigned_to_user_id: user_id, assigned_to_user: users.find(user => user.value === user_id)?.label || null }
+              ? { 
+            ...annotation,
+            assigned_to_user: Object.values(groupsWithUsers).flat().find((user: string) => user === username) || null 
+          }
               : annotation
           )
         );
@@ -148,7 +145,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
     try {
       const response = await axiosInstance.post(BACKEND_URLS.smart_assign, { status, userGroup, percentage });
       if (response.status === 200) {
-        fetchAnnotations("all", "all", page);
+        fetchAnnotations("all", "all", page, null);
         setShowDialog(false);
         alert("Smart assign successful: " + response.data.message);
       } else {
@@ -165,8 +162,15 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
       <div className="h-[80vh] overflow-y-auto">
         <div className="bg-blue-900 text-white rounded-md p-4 sticky top-0 z-10">
           <div className="grid grid-cols-3 gap-3 text-xl text-center">
-            <div className="">
-              <h1>ID</h1>
+            <div className="flex flex-col items-center">
+              <h1 className="text-lg font-semibold mb-3">ID</h1>
+              <input
+                type="text"
+                value={serachID || ""}
+                onChange={(e) => setSearchID(e.target.value)}
+                placeholder="Search by ID"
+                className="text-black w-full rounded-md p-2"
+              />
             </div>
             <div className="flex flex-col items-center">
               <div className="flex items-center justify-center mb-2">
@@ -181,14 +185,23 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                   </button>
                 )}
               </div>
-                {userData && userData.is_superuser && (<Select
-                options={[...users.map(user => ({ ...user, label: `${user.label}` })), { value: 'all', label: 'all' }]}
-                onChange={(selectedOption) => {
-                  setSelectedAssignee(selectedOption?.label || 'all');
-                }}
-                placeholder="Select assignee"
-                className="text-black w-full"
-                />)}
+                {userData && userData.is_superuser && (<select 
+                    id="user-select" 
+                    className="select-user-dropdown text-black" 
+                    onChange={(e) => setSelectedAssignee(e.target.value)}
+                    value={selectedAssignee ?? ''}
+                    >
+                    <option value="" disabled>--select--</option>
+                    {Object.entries(groupsWithUsers).map(([group, users]) => (
+                        <optgroup key={group} label={group}>
+                        {users.map((user: string) => (
+                            <option key={user} value={user}>
+                            {user}
+                            </option>
+                        ))}
+                        </optgroup>
+                    ))}
+                    </select>)}
             </div>
             <div className="flex flex-col items-center">
               <h1 className="text-lg font-semibold mb-3">Status</h1>
@@ -220,16 +233,23 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                     <p className="text-sm font-semibold">{item.id}</p>
                   </div>
                   <div className="flex justify-center">
-                    {(userData && userData.is_superuser) ? (<Select
-                      value={item.assigned_to_user && item.assigned_to_user != "unassigned" ? { value: item.assigned_to_user_id, label: item.assigned_to_user } : null}
-                      options={users} // Example options
-                      onChange={(selectedOption) => {
-                        handleUserChange(item.id, selectedOption?.value || null)
-                      }}
-                      placeholder="Select user"
-                      className="w-full text-center"
-                    />) :
-                      <p className="text-sm text-bold">{item.assigned_to_user}</p>}
+                    <select 
+                      id="user-select" 
+                      className="select-user-dropdown text-black rounded-md p-2" 
+                      onChange={(e) => handleUserChange(item.id, e.target.value ?? null)}
+                      value={item.assigned_to_user ?? ''}
+                    >
+                      <option value="" disabled>--select--</option>
+                      {Object.entries(groupsWithUsers).map(([group, users]) => (
+                        <optgroup key={group} label={group}>
+                          {users.map((user: string) => (
+                            <option key={user} value={user}>
+                              {user}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
                   </div>
                   <Link
                     href={{
@@ -244,9 +264,9 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                     onClick={() => setTriageReady(true)}
                     className={`text-center rounded-lg p-2 cursor-pointer ${item.status === "uploaded"
                       ? "bg-blue-200"
-                      : item.status === "labelled"
+                      : item.status === "pre-labelling"
                         ? "bg-blue-300"
-                        : item.status === "pre-labelled"
+                        : item.status === ""
                           ? "bg-blue-400"
                           : item.status === "accepted"
                             ? "bg-blue-500"
