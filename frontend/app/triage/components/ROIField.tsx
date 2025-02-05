@@ -6,7 +6,6 @@ import XIcon from "./XIcon";
 
 
 interface ROIFieldsProps {
-  allowLabelling: boolean;
   allowReview: boolean;
   fieldName: string;
   fieldValue: any;
@@ -33,7 +32,6 @@ interface DisplayCols {
 }
 
 const ROIFields: React.FC<ROIFieldsProps> = ({
-  allowLabelling,
   allowReview,
   fieldName,
   fieldValue,
@@ -185,7 +183,7 @@ const ROIFields: React.FC<ROIFieldsProps> = ({
                       {row[colName]?.location?.pageNo !== 0 && (
                         <div className="flex justify-center">
                           <p className="m-2 text-gray-800 text-left whitespace-nowrap">page {index + 1}</p>
-                          {allowLabelling && <button
+                          <button
                             onClick={(e) =>
                               handleNestedFieldChange(
                                 fieldName,
@@ -210,7 +208,6 @@ const ROIFields: React.FC<ROIFieldsProps> = ({
                               <XIcon />
                             )}
                           </button>
-                            }
                           {(colName === currField && index === currIndex && allowReview) ?
                             <TextareaAutosize
                               className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full"

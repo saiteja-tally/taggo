@@ -5,7 +5,6 @@ import XIcon from "./XIcon";
 import adjustTextareaHeight from "@/app/utils/adjustHeight";
 
 interface SingleValuedFieldProps {
-  allowLabelling: boolean;
   allowReview: boolean;
   fieldName: string;
   fieldValue: Record<string, any>;
@@ -25,7 +24,6 @@ interface SingleValuedFieldProps {
 }
 
 const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
-  allowLabelling,
   allowReview,
   fieldName,
   fieldValue,
@@ -51,23 +49,45 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           <p className="font-semibold text-indigo-700">
             {fieldName}
           </p>
-          {fieldValue.comment && fieldValue.comment.length > 0 && allowLabelling && (
             <div className="flex">
-              <button
-              onClick={(e) => {handleSingleValuedFieldChange(
+              {fieldValue.comment && fieldValue.comment.length > 0 &&<button
+                onClick={(e) => {
+                  handleSingleValuedFieldChange(
                     fieldName,
                     "",
                     null,
                     "add comment"
-                  )}} 
-              className="relative text-red-500 text-sm"><BiComment className="text-gray-700" /><XIcon /></button>
-              <div className="m-1 text-gray-800 text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar" style={{ maxWidth: '100%' }}>
-                {fieldValue.comment}
-              </div>
+                  )
+                }}
+                className="relative text-red-500 text-sm"><BiComment className="text-gray-700" /><XIcon />
+              </button>}
+              {(fieldName == selectedField && allowReview) ?
+                <TextareaAutosize
+                  className="text-gray-800 m-1 text-sm bg-red-50 rounded-md border overflow-hidden resize-none border-blue-300 p-1 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
+                  value={fieldValue.comment || ""}
+                  placeholder="Add comment"
+                  onChange={(e) => {
+                    handleSingleValuedFieldChange(
+                      fieldName,
+                      e.target.value,
+                      null,
+                      "add comment"
+                    )
+                    adjustTextareaHeight(e.target);
+                  }
+                  }
+                  rows={1} // Default row count
+                  ref={(el) => {
+                    if (el) adjustTextareaHeight(el); // Adjust height on initial render
+                  }}
+                  wrap="off"
+                />
+                : <div className="m-1 text-gray-800 text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
+                  {fieldValue.comment}
+                </div>}
             </div>
-          )}
         </div>
-        {allowLabelling ? fieldValue.location?.pageNo !== 0 && (
+        {fieldValue.location?.pageNo !== 0 && (
           <div>
             <button
               onClick={(e) =>
@@ -91,36 +111,10 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
               )}
             </button>
           </div>
-        ) :
-          (selectedField === fieldName && allowReview) ? (
-            <TextareaAutosize
-              className="text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
-              value={fieldValue.comment || ""}
-              placeholder="Add comment"
-              onChange={(e) => {
-                handleSingleValuedFieldChange(
-                  fieldName,
-                  e.target.value,
-                  null,
-                  "add comment"
-                )
-                adjustTextareaHeight(e.target);
-              }
-              }
-              rows={1} // Default row count
-              ref={(el) => {
-                if (el) adjustTextareaHeight(el); // Adjust height on initial render
-              }}
-              wrap="off"
-            />
-          ) : fieldValue.comment ? (
-            <div className="flex items-center">
-              <BiComment className="text-gray-700" />
-            </div>
-          ) : null}
+        )}
       </div>
 
-      {allowLabelling ? <TextareaAutosize
+      <TextareaAutosize
         className={`text-gray-800 bg-blue-50 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none w-full 
     ${selectedField === fieldName ? "border border-red-300" : ""} 
     hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar`}
@@ -141,10 +135,6 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
         }}
         wrap="off"
       />
-        :
-        <div className="m-1 p-1 text-gray-800 text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
-          {fieldValue.text}
-        </div>}
     </div>
   );
 };

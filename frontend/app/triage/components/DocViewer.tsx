@@ -37,7 +37,10 @@ const DocViewer: React.FC<DocViewerProps> = ({
   colName,
   dataChanged,
 }) => {
-  const fileUrl = `/get_document/${doc_id}`;
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const fileUrl = `${API_BASE_URL}/get_document/${doc_id}`;
   
 
   const downloadFile = (file: string, docType: string) => {

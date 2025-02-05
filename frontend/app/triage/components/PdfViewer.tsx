@@ -288,7 +288,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
           try {
             const { data } = await axiosInstance.post(
-              "/get_ocr_text",
+              "/get_ocr_text/",
               formData,
               {
                 headers: { "Content-Type": "multipart/form-data" },

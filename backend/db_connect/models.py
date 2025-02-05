@@ -12,12 +12,10 @@ class Annotation(models.Model):
     STATUS_CHOICES = [
         ('uploaded', 'Uploaded'),
         ('pre-labelled', 'Pre-labelled'),
-        ('labelling', 'Labelling'),
-        ('labelled', 'Labelled'),
-        ('reviewed', 'Reviewed'),
-        ('rejected', 'Rejected'),
+        ('in-labelling', 'In-Labelling'),
+        ('in-review', 'In-Review'),
         ('accepted', 'Accepted'),
-        ('done', 'Done'),
+        ('completed', 'Completed')
     ]
     inserted_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='uploaded')

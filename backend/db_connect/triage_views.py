@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime
 from django.conf import settings
-import logging, boto3, json, io
+import logging, boto3, json, io, random
 from PIL import Image
 from django.contrib.auth.models import User
 import pytesseract
@@ -76,14 +76,13 @@ def get_json(request, status: str, id: str):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def save_json(request , status: str, id: str):
+def save(request , status: str, id: str):
     try:
         json_data = request.body.decode('utf-8')
-        user = request.user.username
 
         if status in ['in-labelling', 'in-review', 'accepted']:
             bucket = settings.S3_LABELLING_BUCKET
-        elif status == 'done':
+        elif status == 'completed':
             bucket = settings.S3_LABEL_BUCKET
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
@@ -92,51 +91,42 @@ def save_json(request , status: str, id: str):
 
         s3.put_object(Bucket=bucket, Key=s3_file_key, Body=json_data)
 
-        # update annotation record
-        annotation = Annotation.objects.get(id=id)
-        annotation.status = status
-        assigned_to_user = None
-        if status == 'in-labelling':
-            annotation.labelled_by = request.user
-            if annotation.labelled_by:
-                annotation.assigned_to_user = annotation.labelled_by
-                assigned_to_user = annotation.assigned_to_user
-            else:
-                labellers = User.objects.filter(groups__name='labellers')
-                if labellers.exists():
-                    annotation.assigned_to_user = labellers.order_by('?').first()
-                    assigned_to_user = annotation.assigned_to_user
-                else:
-                    annotation.assigned_to_user = None
-        elif status == 'in-review':
-            annotation.labelled_by = request.user
-            if annotation.reviewed_by:
-                annotation.assigned_to_user = annotation.reviewed_by
-                assigned_to_user = annotation.assigned_to_user
-            else:
-                reviewers = User.objects.filter(groups__name='reviewers')
-                if reviewers.exists():
-                    annotation.assigned_to_user = reviewers.order_by('?').first()
-                    assigned_to_user = annotation.assigned_to_user
-                else:
-                    annotation.assigned_to_user = None
-        elif status == 'accepted':
-            annotation.reviewed_by = request.user
-        
-        
+        return JsonResponse({'status': 'success', 'message': f'{status} JSON data saved successfully'}, safe=False)
 
+    except Exception as e:
+        logger.error(f"Error saving JSON data: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def submit(request , status: str, id: str):
+    try:
+        json_data = request.body.decode('utf-8')
+
+        if status == 'in-labelling':
+            bucket = settings.S3_LABELLING_BUCKET
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
+
+        s3_file_key = f"{id}.json"
+
+        s3.put_object(Bucket=bucket, Key=s3_file_key, Body=json_data)
+
+        annotation = Annotation.objects.get(id=id)
+        annotation.labelled_by = request.user
+        annotation.status = 'in-review'
+        reviewers = User.objects.filter(groups__name='reviewers')
+        if reviewers.exists():
+            annotation.assigned_to_user = reviewers.order_by('?').first()
         ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
-        annotation.history.append(f'{ist_time}: {status} by {user}')
-        if assigned_to_user:
-            annotation.history.append(f'{ist_time}: assigned to {assigned_to_user.username}')
+        annotation.history.append(f'{ist_time}: labelled by {request.user.username}')
         annotation.save()
 
         return JsonResponse({'status': 'success', 'message': f'{status} JSON data saved successfully'}, safe=False)
 
     except Exception as e:
         logger.error(f"Error saving JSON data: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500) 
 
 
 @api_view(['POST'])
@@ -174,20 +164,54 @@ def get_ocr_text(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def reject_annotation(request):
-    if not request.user.groups.filter(name='reviewers').exists() or not request.user.is_superuser:
-        return JsonResponse({'status': 'error', 'message': 'Only reviewers can reject annotations'}, status=403)
-
-    id = request.data['doc_id']
-    reason = request.data['reason']
+def reject(request , status: str, id: str):
     try:
+        json_data = request.body.decode('utf-8')
+        if status in ['in-review', 'accepted']:
+            bucket = settings.S3_LABELLING_BUCKET
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Cannot reject!'}, status=400)
+
+        s3.put_object(Bucket=bucket, Key=f"{id}.json", Body=json_data)
         annotation = Annotation.objects.get(id=id)
-        annotation.status = 'rejected'
-        annotation.assigned_to_user = None
+        if annotation.reviewed_by:
+            annotation.status = 'in-review'
+            annotation.assigned_to_user = annotation.reviewed_by
+        elif annotation.labelled_by:
+            annotation.status = 'in-labelling'
+            annotation.assigned_to_user = annotation.labelled_by
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Cannot reject!'}, status=400)
+        
         ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
-        annotation.history.append(f'{ist_time}: rejected by {request.user.username} because {reason}')
+        annotation.history.append(f'{ist_time}: rejected by {request.user.username}')
+        annotation.history.append(f'{ist_time}: assigned to {annotation.assigned_to_user.username}')
         annotation.save()
         return JsonResponse({'status': 'success', 'message': 'Annotation rejected'}, safe=False)
+
+    except Exception as e:
+        logger.error(f"Error rejecting annotation: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept(request , status: str, id: str):
+    try:
+        json_data = request.body.decode('utf-8')
+        if status != 'in-review':
+            return JsonResponse({'status': 'error', 'message': 'Cannot accept!'}, status=400)
+        
+        s3.put_object(Bucket=settings.S3_LABELLING_BUCKET, Key=f"{id}.json", Body=json_data)
+        annotation = Annotation.objects.get(id=id)
+        annotation.status = 'accepted'
+        ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
+        annotation.history.append(f'{ist_time}: accepted by {request.user.username}')
+        if request.user.is_superuser:
+            if random.random() < 0.2:
+                annotation.assigned_to_user = request.user
+                annotation.history.append(f'{ist_time}: assigned to {request.user.username}')
+        annotation.save()
+        return JsonResponse({'status': 'success', 'message': 'Annotation accepted!'}, safe=False)
 
     except Exception as e:
         logger.error(f"Error rejecting annotation: {e}")

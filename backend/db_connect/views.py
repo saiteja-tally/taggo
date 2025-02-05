@@ -188,6 +188,7 @@ def smart_assign(request):
         for annotation in annotations[:annotations_to_assign]:
             user_id = users[user_index]['id']
             annotation.assigned_to_user_id = user_id
+            annotation.status = 'in-labelling'
             ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
             annotation.history.append(f'{ist_time}: assigned to {users[user_index]["username"]} by {request.user.username}(smart assign)')
             annotation.save()

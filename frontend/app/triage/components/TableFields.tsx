@@ -7,7 +7,6 @@ import adjustTextareaHeight from "@/app/utils/adjustHeight";
 
 
 interface TableFieldsProps {
-  allowLabelling: boolean;
   allowReview: boolean;
   fieldName: string;
   fieldValue: any[];
@@ -34,7 +33,6 @@ interface DisplayCols {
 }
 
 const TableFields: React.FC<TableFieldsProps> = ({
-  allowLabelling,
   allowReview,
   fieldName,
   fieldValue,
@@ -212,7 +210,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
           {fieldValue.map((row: any, index: number) => (
             <tr
               key={index}
-              className={`p-0 border-b ${index === currIndex ? "" : ""}`}
+              className={`border-b ${index === currIndex ? "" : ""}`}
             >
               <td
                 className={`sticky left-0 ${index === currIndex ? "bg-cyan-300" : "bg-gray-300"
@@ -253,88 +251,96 @@ const TableFields: React.FC<TableFieldsProps> = ({
                         : ""
                         }`}
                     >
-                      {colName !== "id" ? (
-                        <div className="flex justify-between">
-                          {allowLabelling ? <TextareaAutosize
-                            value={row[colName]?.text || ""}
-                            className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      <div className="flex">
+                        {row[colName].comment && <button
+                          onClick={() =>
+                            handleNestedFieldChange(
+                              fieldName,
+                              index,
+                              colName,
+                              "",
+                              null,
+                              "del comment"
+                            )
+                          }
+                          className="relative p-1 text-red-500 text-sm"><BiComment className="text-gray-700" /><XIcon />
+                        </button>}
+                        {(colName === currField && index === currIndex && allowReview) ?
+                          <TextareaAutosize
+                            className="text-gray-800 m-1 text-sm bg-red-50 rounded-md border overflow-hidden resize-none border-blue-300 p-1 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
+                            value={row[colName].comment || ""}
+                            placeholder="Add comment"
                             onChange={(e) => {
                               handleNestedFieldChange(
                                 fieldName,
                                 index,
                                 colName,
                                 e.target.value,
-                                row[colName]?.location,
-                                "update value"
-                              );
+                                null,
+                                "add comment"
+                              )
+                              adjustTextareaHeight(e.target);
+                            }
+                            }
+                            rows={1} // Default row count
+                            cols = {maxLength(row[colName]?.comment || "")}
+                            ref={(el) => {
+                              if (el) adjustTextareaHeight(el); // Adjust height on initial render
                             }}
                             wrap="off"
-                            rows={1}
-                            cols={maxLength(row[colName]?.text || "")}
-                            onFocus={() => (textAreaFocused.current = true)}
-                            onBlur={() => (textAreaFocused.current = false)}
-                          /> :
-                            row[colName].text ? <div className="m-1 p-1 text-gray-800 text-left min-w-10px whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
-                              {row[colName].text}
-                            </div> : null}
-                          {row[colName]?.location?.pageNo !== 0 && allowLabelling ? (
-                            <button
-                              onClick={() =>
-                                handleNestedFieldChange(
-                                  fieldName,
-                                  index,
-                                  colName,
-                                  row[colName].text,
-                                  null,
-                                  "del bbox"
-                                )
-                              }
-                              disabled={
-                                (colName !== currField || index !== currIndex)
-                              }
-                              className="relative"
-                            >
-                              <img
-                                src="rect.png" // Replace with the actual path to your PNG image
-                                alt="Draw Box"
-                                className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
-                              />
-                              {colName === currField && index === currIndex && (
-                                <XIcon />
-                              )}
-                            </button>
-                          ) : (colName === currField && index === currIndex && allowReview) ?
-                            <TextareaAutosize
-                              className="text-gray-800 bg-blue-50 m-1 rounded-md border overflow-hidden resize-none border-blue-300 p-2 focus:outline-none overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
-                              value={row[colName].comment || ""}
-                              placeholder="Add comment"
-                              onChange={(e) => {
-                                handleNestedFieldChange(
-                                  fieldName,
-                                  index,
-                                  colName,
-                                  e.target.value,
-                                  null,
-                                  "add comment"
-                                )
-                                adjustTextareaHeight(e.target);
-                              }
-                              }
-                              rows={1} // Default row count
-                              ref={(el) => {
-                                if (el) adjustTextareaHeight(el); // Adjust height on initial render
-                              }}
-                              wrap="off"
-                            /> :
-                            row[colName].comment ? (
-                              <div className="flex items-center m-2">
-                                <BiComment className="text-gray-700" />
-                              </div>
-                            ) : null}
-                        </div>
-                      ) : (
-                        row[colName].text
-                      )}
+                          />
+                          : <div className="m-1 text-gray-800 text-sm text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
+                            {row[colName].comment}
+                          </div>}
+                      </div>
+                      <div className="flex justify-between">
+                        <TextareaAutosize
+                          value={row[colName]?.text || ""}
+                          className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                          onChange={(e) => {
+                            handleNestedFieldChange(
+                              fieldName,
+                              index,
+                              colName,
+                              e.target.value,
+                              row[colName]?.location,
+                              "update value"
+                            );
+                          }}
+                          wrap="off"
+                          rows={1}
+                          cols={maxLength(row[colName]?.text || "")}
+                          onFocus={() => (textAreaFocused.current = true)}
+                          onBlur={() => (textAreaFocused.current = false)}
+                        />
+                        {row[colName]?.location?.pageNo !== 0 && (
+                          <button
+                            onClick={() =>
+                              handleNestedFieldChange(
+                                fieldName,
+                                index,
+                                colName,
+                                row[colName].text,
+                                null,
+                                "del bbox"
+                              )
+                            }
+                            disabled={
+                              (colName !== currField || index !== currIndex)
+                            }
+                            className="relative"
+                          >
+                            <img
+                              src="rect.png" // Replace with the actual path to your PNG image
+                              alt="Draw Box"
+                              className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
+                            />
+                            {colName === currField && index === currIndex && (
+                              <XIcon />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )
               )}

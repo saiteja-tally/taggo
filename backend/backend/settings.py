@@ -157,6 +157,7 @@ CORS_ALLOW_METHODS = [
 ALLOWED_HOSTS = ['*']
 
 from datetime import timedelta
+import socket
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Default: 5–15 minutes
@@ -187,4 +188,7 @@ EMAIL_HOST_USER = 'tally.ai.doc.ai@gmail.com'
 EMAIL_HOST_PASSWORD = 'hqcdunhrvydjvnww'
 DEFAULT_FROM_EMAIL = 'tally.ai.doc.ai@gmail.com'
 
-FRONTEND_URL = 'http://localhost:3000'
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
+
+FRONTEND_URL = f'http://{local_ip}:3000'

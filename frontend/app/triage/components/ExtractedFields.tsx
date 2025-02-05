@@ -52,7 +52,7 @@ const predefinedFields = {
 
 interface ExtractedFieldsProps {
   doc_id: string | null;
-  status: string | null;
+  status: string;
   startAnnotation: () => void;
   handleFieldClick: (
     fieldName: string,
@@ -83,8 +83,11 @@ interface ExtractedFieldsProps {
   isLoading: boolean;
   nodata: boolean;
   dataChanged: boolean;
-  handleSave: (status: string) => void;
-  handleDiscard: () => void;
+  handleSave: () => void;
+  handleReset: () => void;
+  handleSubmit: () => void;
+  handleAccept: () => void;
+  handleReject: () => void;
 }
 
 interface DisplayFields {
@@ -107,11 +110,13 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   isLoading,
   dataChanged,
   handleSave,
-  handleDiscard,
+  handleReset,
+  handleSubmit,
+  handleAccept,
+  handleReject,
 }) => {
 
   const [displayFields, setDisplayFields] = useState<DisplayFields>({});
-  const [allowLabelling, setAllowLabelling] = useState<boolean>(false);
   const [allowReview, setAllowReview] = useState<boolean>(false);
 
   useEffect(() => {
@@ -146,19 +151,14 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   }, [extractedData]);
 
   useEffect(() => {
-    if (!status){
+    if (!status) {
       return;
     }
-    if (['uploaded', 'pre-labelled', 'labelling', 'rejected'].includes(status)) {
-      setAllowLabelling(true);
-      setAllowReview(false);
-    } else if (["labelled", 'reviewing', 'accepted', 'done'].includes(status)) {
-      setAllowLabelling(false);
-      setAllowReview(true);   
+    if (['in-review', 'accepted', 'done'].includes(status)) {
+      setAllowReview(true);
     }
-    console.log(status, true, false);
   }, [status]);
-  
+
   const handleAddField = useCallback((fieldName: string) => {
     setDisplayFields((prevData) => ({
       ...prevData,
@@ -194,7 +194,6 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       ) {
         return (
           <SingleValuedField
-            allowLabelling={allowLabelling}
             allowReview={allowReview}
             key={fieldName}
             fieldName={fieldName}
@@ -209,7 +208,6 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <TableFields
-              allowLabelling={allowLabelling}
               allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
@@ -225,7 +223,6 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <TableFields
-              allowLabelling={allowLabelling}
               allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
@@ -241,7 +238,6 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         return (
           <div className="text-xs" key={fieldName}>
             <ROIField
-              allowLabelling={allowLabelling}
               allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
@@ -348,11 +344,13 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               </div>}
           </div>
           <ActionButtons
-            allowLabelling={allowLabelling}
-            allowReview={allowReview}
+            status={status}
+            dataChanged={dataChanged}
             handleSave={handleSave}
-            handleReset={handleDiscard}
-            dataChanged={dataChanged} />
+            handleReset={handleReset}
+            handleSubmit={handleSubmit}
+            handleAccept={handleAccept}
+            handleReject={handleReject} />
         </div>
       }
     </div>

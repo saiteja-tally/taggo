@@ -14,11 +14,13 @@ const Login = () => {
         refresh: string;
     }
 
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post<LoginResponse>("/token/", {
+            const response = await axios.post<LoginResponse>(`${API_BASE_URL}/token/`, {
               username,
               password,
             });

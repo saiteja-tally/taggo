@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import { useState, ChangeEvent } from "react";
-import BACKEND_URLS from "../BackendUrls";
 import axiosInstance from "../utils/axiosInstance";
 import AccountDetails from "../utils/AccountDetails";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -35,7 +34,7 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
 
         try {
           const response = await axiosInstance.post(
-            '/upload_document',
+            '/upload_document/',
             formData, // Pass FormData directly
             {
               headers: {

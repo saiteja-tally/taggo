@@ -8,7 +8,7 @@ from .views import (
     get_annotations_count,
     get_groups_with_users
 )
-from .triage_views import (get_document, get_json, save_json, get_ocr_text, reject_annotation, get_next, get_prev)
+from .triage_views import (get_document, get_json, save, accept, submit, get_ocr_text, reject, get_next, get_prev)
 
 urlpatterns = [
     path(
@@ -20,9 +20,11 @@ urlpatterns = [
     path("upload_document/", upload_document, name="upload document"),
     path("get_json/<str:status>/<str:id>/", get_json, name="get json"),
     path("assign_annotation", assign_annotation, name="assign annotation"),
-    path("save_json/<str:status>/<str:id>/", save_json, name="save json"),
+    path("save/<str:status>/<str:id>/", save, name="save json"),
+    path("accept/<str:status>/<str:id>/", accept, name="accept annotation"),
+    path("submit/<str:status>/<str:id>/", submit, name="submit annotation"),
+    path("reject/<str:status>/<str:id>/", reject, name="reject annotation"),
     path("get_ocr_text/", get_ocr_text, name="get ocr text"),
-    path("reject_annotation/", reject_annotation, name="reject annotation"),
     path("get_next/<str:id>/", get_next, name="get next"),
     path("get_prev/<str:id>/", get_prev, name="get prev"),
     path("smart_assign/", smart_assign, name="smart assign"),

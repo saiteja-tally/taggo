@@ -4,8 +4,8 @@ import ExtractedFields from "@/app/triage/components/ExtractedFields";
 import axiosInstance from "@/app/utils/axiosInstance";
 
 interface InteractiveSpaceProps {
-  doc_id: string | null;
-  status: string | null;
+  doc_id: string;
+  status: string;
 }
 
 const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
@@ -105,6 +105,12 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
           comment: value ? value : "",
         };
       }
+      if (instruction === "del comment") {
+        updatedItem[colName] = {
+          ...updatedItem[colName],
+          comment: "",
+        };
+      }
       newData[fieldName][index] = updatedItem;
       return newData;
     });
@@ -159,10 +165,25 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     setDataChanged(true);
   };
 
-  const handleSave = async (status: string) => {
-    if (['rejected', 'labelled'].includes(status)) {
-      // go though all the fields and check if any field has comment non-empty. don't allow to reject if no field has comment
-      let commentList = []
+  const handleAccept = async () => {
+    try {
+      const response = await axiosInstance.post(
+        `/accept/${status}/${doc_id}/`,
+        JSON.stringify(extractedData)
+      );
+
+      if (response.status >= 200 && response.status < 300) {
+        setDataChanged(false);
+        setNoData(false);
+      } else {
+        console.error("Failed to accept");
+      }
+    } catch (error) {
+      console.error("Error accepting:", error);
+  }}
+
+  const handleSubmit = async () => {
+    let commentList = []
       for (const field in extractedData) {
         if (Array.isArray(extractedData[field])) {
           for (const item of extractedData[field]) {
@@ -177,22 +198,73 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         }
       }
 
-      if (status == 'rejected' && commentList.length == 0) {
+      if (commentList.length > 0) {
+        alert("Please remove all comment before rejecting:\n" + commentList.join("\n"))
+        return
+      }
+
+      try {
+        const response = await axiosInstance.post(
+          `/submit/${status}/${doc_id}/`,
+          JSON.stringify(extractedData)
+        );
+  
+        if (response.status >= 200 && response.status < 300) {
+          setDataChanged(false);
+          setNoData(false);
+        } else {
+          console.error("Failed to submit");
+        }
+      } catch (error) {
+        console.error("Error submitting:", error);
+      }
+
+
+  }
+
+  const handleReject = async () => {
+    let commentList = []
+      for (const field in extractedData) {
+        if (Array.isArray(extractedData[field])) {
+          for (const item of extractedData[field]) {
+            for (const subField in item) {
+              if (item[subField].comment) {
+                commentList.push(`${field}[${subField}]: ${item[subField].comment}`)
+              }
+            }
+          }
+        } else if (extractedData[field].comment) {
+          commentList.push(`${field}: ${extractedData[field].comment}`)
+        }
+      }
+
+      if (commentList.length == 0) {
         alert("Please add a comment before rejecting")
         return
       }
 
-      if (status == 'labelled' && commentList.length > 0) {
-        console.log(commentList)
-        alert("Please check all comments are removed before submitting\n\n" + commentList.join("\n"))
-        return
+      try {
+        const response = await axiosInstance.post(
+          `/reject/${status}/${doc_id}/`,
+          JSON.stringify(extractedData)
+        );
+  
+        if (response.status >= 200 && response.status < 300) {
+          setDataChanged(false);
+          setNoData(false);
+        } else {
+          console.error("Failed to reject");
+        }
+      } catch (error) {
+        console.error("Error rejecting:", error);
       }
-    }
 
+  }
 
+  const handleSave = async () => {
     try {
       const response = await axiosInstance.post(
-        `save_json/${status}/${doc_id}/`,
+        `save/${status}/${doc_id}/`,
         JSON.stringify(extractedData)
       );
 
@@ -227,7 +299,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     }
   };
 
-  const handleDiscard = async () => {
+  const handleReset = async () => {
     fetchData();
   };
 
@@ -295,7 +367,10 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         nodata={noData}
         dataChanged={dataChanged}
         handleSave={handleSave}
-        handleDiscard={handleDiscard}
+        handleReset={handleReset}
+        handleSubmit={handleSubmit}
+        handleAccept={handleAccept}
+        handleReject={handleReject}
       />
     </div>
   );
