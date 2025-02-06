@@ -64,12 +64,14 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   }, [page, selectedAssignee, selectedStatus, serachID]);
 
   useEffect(() => {
-    const fetchGroupsWithUsers = async () => {
-      const response = await axiosInstance.get('/get_groups_with_users');
-      setGroupsWithUsers(response.data);
-    };
-    fetchGroupsWithUsers();
-  }, []
+    if (userData?.is_superuser) {
+      const fetchGroupsWithUsers = async () => {
+        const response = await axiosInstance.get('/get_groups_with_users');
+        setGroupsWithUsers(response.data);
+      };
+      fetchGroupsWithUsers();
+    }
+  }, [userData]
   )
 
   // Extract unique values for dropdowns
@@ -82,7 +84,6 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
         username,
       });
 
-      console.log(groupsWithUsers, id, username);
       if (response.status === 200) {
         console.log("User assigned successfully");
         setData((prevData: Annotation[]) =>
@@ -181,7 +182,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
               </div>
               {userData && userData.is_superuser && (<select
                 id="user-select"
-                className="select-user-dropdown text-black"
+                className="select-user-dropdown text-black rounded-md p-2"
                 onChange={(e) => setSelectedAssignee(e.target.value)}
                 value={selectedAssignee ?? ''}
               >
@@ -199,14 +200,14 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             </div>
             <div className="flex flex-col items-center">
               <h1 className="text-lg font-semibold mb-3">Status</h1>
-              <Select
+              {userData && userData.is_superuser && <Select
                 options={uniqueStatuses.map(status => ({ ...status, label: `${status.label}` }))}
                 onChange={(selectedOption) => {
                   setSelectedStatus(selectedOption?.label || 'all');
                 }}
                 placeholder="Select status"
                 className="text-black w-full"
-              />
+              />}
             </div>
           </div>
         </div>
@@ -227,10 +228,10 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                     <p className="text-sm font-semibold">{item.id}</p>
                   </div>
                   <div className="flex justify-center">
-                    <select
+                    {userData && userData.is_superuser ? <select
                       id="user-select"
-                      className="select-user-dropdown text-black rounded-md p-2"
-                      onChange={(e) => handleUserChange(item.id, e.target.value !=="" ? e.target.value: null)}
+                      className="select-user-dropdown text-black rounded-md p-2 border"
+                      onChange={(e) => handleUserChange(item.id, e.target.value !== "" ? e.target.value : null)}
                       value={item.assigned_to_user ?? ''}
                     >
                       <option value="">--select--</option>
@@ -243,7 +244,8 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                           ))}
                         </optgroup>
                       ))}
-                    </select>
+                    </select>:
+                      <p className="text-sm font-semibold">{item.assigned_to_user}</p>}
                   </div>
                   <Link
                     href={{
@@ -257,18 +259,18 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                     }}
                     onClick={() => setTriageReady(true)}
                     className={`text-center rounded-lg p-2 cursor-pointer transition-colors duration-300 ease-in-out ${item.status === "uploaded"
-                        ? "bg-green-200 hover:bg-green-300"
-                        : item.status === "pre-labelled"
-                          ? "bg-yellow-200 hover:bg-yellow-300"
-                          : item.status === "in-labelling"
-                            ? "bg-orange-200 hover:bg-orange-300"
-                            : item.status === "in-review"
-                              ? "bg-purple-200 hover:bg-purple-300"
-                              : item.status === "accepted"
-                                ? "bg-teal-200 hover:bg-teal-300"
-                                : item.status === "completed"
-                                  ? "bg-gray-200 hover:bg-gray-300"
-                                  : "bg-gray-300 hover:bg-gray-400"
+                      ? "bg-green-200 hover:bg-green-300"
+                      : item.status === "pre-labelled"
+                        ? "bg-yellow-200 hover:bg-yellow-300"
+                        : item.status === "in-labelling"
+                          ? "bg-orange-200 hover:bg-orange-300"
+                          : item.status === "in-review"
+                            ? "bg-purple-200 hover:bg-purple-300"
+                            : item.status === "accepted"
+                              ? "bg-teal-200 hover:bg-teal-300"
+                              : item.status === "completed"
+                                ? "bg-gray-200 hover:bg-gray-300"
+                                : "bg-gray-300 hover:bg-gray-400"
                       }`}
                   >
                     {item.status}

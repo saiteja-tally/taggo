@@ -194,7 +194,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
   return (
     <div className="h-[25vh] overflow-auto sm:text-xs md:text-xs lg:text-lg xl:text-lg">
       <table className="min-w-full bg-white">
-      <thead className="sticky top-0 z-10">
+      <thead className="sticky top-0 z-10 opacity-100">
         <tr className="">
         <th className="sticky left-0 bg-gray-300 whitespace-nowrap w-16">
           <AddField
@@ -208,7 +208,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
           value && (
             <th
             key={fieldName}
-            className={`px-2 text-left text-indigo-700 font-md ${fieldName === currField
+            className={`px-2 text-left border border-gray-400 text-indigo-700 ${fieldName === currField
               ? "bg-red-200"
               : ""
               }`}
@@ -226,11 +226,11 @@ const TableFields: React.FC<TableFieldsProps> = ({
           className={`m-2 p-2`}
         >
           <td
-          className={`sticky left-0 w-16 ${index === currIndex ? "bg-red-200" : "bg-gray-300"
+          className={`sticky  border border-gray-400  left-0 w-16 ${index === currIndex ? "bg-red-200" : "bg-gray-300"
             }`}
           >
           <button
-            className={`px-3 text-xl font-bold rounded hover:bg-red-500 text-black focus:outline-none hover:text-white`}
+            className={`px-3 font-bold rounded hover:bg-red-500 text-black focus:outline-none hover:text-white`}
             onClick={() => handleNestedRowDelete(fieldName, index)}
           >
             -
@@ -350,7 +350,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
                 <img
                   src="rect.png" // Replace with the actual path to your PNG image
                   alt="Draw Box"
-                  className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
+                  className="h-4 w-5" // Adjust the height and width of the image as needed
                 />
                 {colName === currField && index === currIndex && (
                   <XIcon />

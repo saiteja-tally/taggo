@@ -50,11 +50,8 @@ def get_json(request, status: str, id: str):
                 return JsonResponse({'status': 'success', 'data': None}, safe=False)
 
             status = status_in_db
-
-        if status == 'pre-labelled':
-            bucket = settings.S3_PRE_LABEL_BUCKET
         
-        elif status in ['in-labelling', 'in-review', 'accepted']:
+        elif status in ['pre-labelled', 'in-labelling', 'in-review', 'accepted']:
             bucket = settings.S3_LABELLING_BUCKET
 
         elif status == 'done':
@@ -80,7 +77,7 @@ def save(request , status: str, id: str):
     try:
         json_data = request.body.decode('utf-8')
 
-        if status in ['in-labelling', 'in-review', 'accepted']:
+        if status in ['pre-labelling','in-labelling', 'in-review', 'accepted']:
             bucket = settings.S3_LABELLING_BUCKET
         elif status == 'completed':
             bucket = settings.S3_LABEL_BUCKET
