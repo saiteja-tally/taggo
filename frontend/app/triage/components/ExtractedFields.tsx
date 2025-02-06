@@ -237,7 +237,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
       if (fieldName === "ROI" && viewType === "ROI") {
         return (
           <div className="text-xs" key={fieldName}>
-            <ROIField
+            <TableFields
               allowReview={allowReview}
               fieldName={fieldName}
               fieldValue={fieldValue}
@@ -323,7 +323,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
           </div>
           <div
             className={`${viewType === "General" ? "h-[77vh] overflow-y-auto" : ""
-              } border border-gray-300 rounded-md p-2`}
+              } border border-gray-300 rounded-md`}
           >
             {extractedData ?
               Object.entries(extractedData).map(([fieldName, fieldValue]) =>

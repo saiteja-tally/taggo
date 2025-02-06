@@ -7,7 +7,7 @@ const Tile = () => {
         inprogress: {
             [key: string]: number;
         };
-        done: number;
+        completed: number;
     } | null>(null);
 
     useEffect(() => {
@@ -19,34 +19,27 @@ const Tile = () => {
     }, []);
 
     return (
-        <div className="tile bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl text-center font-semibold text-gray-800 mb-4">
-            Total Number of Annotations: {data ? data.total : 'Loading...'}
+        <div className="tile bg-gradient-to-r from-green-200 via-blue-200 to-purple-200 shadow-lg rounded-lg p-6">
+            <h2 className="text-3xl text-center font-bold text-gray-800 mb-6">
+            Total Documents: {data ? data.total : 'Loading...'}
             </h2>
-            <div className="flex justify-between mt-4">
-            <div className="w-1/2 bg-blue-100 p-4 rounded-lg">
-            <h3 className="text-lg font-medium text-blue-700 mb-2">
-            In-Progress:
-            {data
-                ? Object.values(data.inprogress).reduce(
-                (acc: number, count: number) => acc + count,
-                0
-                )
-                : 'Loading...'}
-            </h3>
-            <ul className="list-disc list-inside text-blue-600">
-            {data &&
-                Object.entries(data.inprogress).map(([key, value]) => (
-                <li key={key}>
-                {key}: {value}
-                </li>
+            <div className="flex justify-between mt-6">
+            <div className="w-1/2 bg-blue-100 p-6 rounded-lg shadow-inner">
+                <h3 className="text-xl font-semibold text-blue-900 mb-4">
+                In-Progress: {data ? Object.values(data.inprogress).reduce((acc: number, count: number) => acc + count, 0) : 'Loading...'}
+                </h3>
+                <ul className="list-disc list-inside text-blue-800">
+                {data && Object.entries(data.inprogress).map(([key, value]) => (
+                    <li key={key}>
+                    {key}: {value}
+                    </li>
                 ))}
-            </ul>
+                </ul>
             </div>
-            <div className="w-1/2 text-right bg-green-100 p-4 rounded-lg">
-            <h3 className="text-lg font-medium text-green-700">
-            Done: {data ? data.done : 'Loading...'}
-            </h3>
+            <div className="w-1/2 text-right bg-green-100 p-6 rounded-lg shadow-inner">
+                <h3 className="text-xl font-semibold text-green-900">
+                Completed: {data ? data.completed : 'Loading...'}
+                </h3>
             </div>
             </div>
         </div>

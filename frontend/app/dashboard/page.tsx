@@ -4,7 +4,6 @@ import Tile from './components/Tile';
 import UserAnnotationsData from './components/UserAnnotationsData';
 import Link from "next/link";
 import { HiHome } from "react-icons/hi";
-import { FaSpinner } from "react-icons/fa";
 import SelectUser from './components/SelectUser';
 
 const Dashboard: React.FC = () => {

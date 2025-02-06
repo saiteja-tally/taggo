@@ -234,18 +234,18 @@ def get_smart_assign_data(request):
 def get_annotations_count(request):
     try:
         total_count = Annotation.objects.count()
-        inprogress_counts = Annotation.objects.filter(status__in=['uploaded', 'pre-labelled', 'labelling', 'labelled', 'accepted', 'rejected']).values('status').annotate(count=Count('status'))
-        done_count = Annotation.objects.filter(status='done').count()
+        inprogress_counts = Annotation.objects.filter(status__in=['uploaded', 'pre-labelled', 'in-labelling', 'in-review', 'accepted']).values('status').annotate(count=Count('status'))
+        completed_count = Annotation.objects.filter(status='completed').count()
 
         # Initialize inprogress with all possible statuses
-        inprogress = {status: 0 for status in ['uploaded', 'pre-labelled', 'labelling', 'labelled', 'accepted', 'rejected']}
+        inprogress = {status: 0 for status in ['uploaded', 'pre-labelled', 'in-labelling', 'in-review', 'accepted']}
         for status in inprogress_counts:
             inprogress[status['status']] = status['count']
 
         return JsonResponse({
             'total': total_count,
             'inprogress': inprogress,
-            'done': done_count
+            'completed': completed_count
         }, status=200)
 
     except Exception as e:

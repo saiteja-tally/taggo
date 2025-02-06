@@ -36,11 +36,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ status, dataChanged, hand
         </button>
         {status == 'in-labelling' && <button
           onClick={() => handleSubmit()}
-          disabled={!dataChanged}
-          className={`${dataChanged
-            ? "bg-blue-500 hover:bg-blue-700 shadow-lg"
-            : "bg-gray-300 text-gray-400 cursor-not-allowed shadow-none"
-            } text-white py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300`}
+          className="bg-blue-500 hover:bg-blue-700 shadow-lg text-white py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
         >
           submit
         </button>}

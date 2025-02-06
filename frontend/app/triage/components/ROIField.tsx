@@ -68,28 +68,28 @@ const ROIFields: React.FC<ROIFieldsProps> = ({
   };
 
   useEffect(() => {
-    let predefinedFields: string[] = [];
+    let predefinedFields: Record<string, boolean> = {};
 
     if (fieldName === "LedgerDetails") {
-      predefinedFields = ["LedgerName", "LedgerRate", "LedgerAmount"];
+      predefinedFields = {"LedgerName": true, "LedgerRate":true, "LedgerAmount":true};
     } else {
-      predefinedFields = [
-        "Document_Info_block_pri",
-        "Buyer_address",
-        "Seller_address",
-        "Buyer_shipping",
-        "Table_pri",
-        "Table_sec",
-        "Amount_details",
-        "Total_amount",
-        "Document_Info_block_sec",
-      ];
+      predefinedFields = {
+        "Document_Info_block_pri":true,
+        "Buyer_address":true,
+        "Seller_address":true,
+        "Buyer_shipping":true,
+        "Table_pri":true,
+        "Table_sec":true,
+        "Amount_details":true,
+        "Total_amount":true,
+        "Document_Info_block_sec":true,
+      };
     }
 
     const initialDisplayCols: DisplayCols = {};
 
     // Ensure all predefinedFields exist in every row, else add dummy value
-    for (const field of predefinedFields) {
+    for (const field of Object.keys(predefinedFields)) {
       fieldValue.forEach((row: any) => {
         if (!row[field]) {
           row[field] = {
@@ -100,7 +100,7 @@ const ROIFields: React.FC<ROIFieldsProps> = ({
       });
 
       initialDisplayCols[field] = fieldValue.some(
-        (row: any) => row[field]?.text !== ""
+        (row: any) => row[field]?.text !== "" || row[field]?.comment !== "" || row[field]?.location?.pageNo !== 0
       );
     }
 

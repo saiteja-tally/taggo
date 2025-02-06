@@ -76,7 +76,7 @@ const TableFields: React.FC<TableFieldsProps> = ({
     let predefinedFields: Record<string, boolean> = {};
     if (fieldName === "LedgerDetails") {
       predefinedFields = { "LedgerName": true, "LedgerRate": true, "LedgerAmount": true };
-    } else {
+    } else if (fieldName === "Table") {
       predefinedFields = {
         "ItemBox": true,
         "ItemName": false,
@@ -97,8 +97,21 @@ const TableFields: React.FC<TableFieldsProps> = ({
         "TaxRate": false,
         "TaxAmount": false,
         "ItemAmount": true,
+      };}
+    else if (fieldName === "ROI") {
+      predefinedFields = {
+        "Document_Info_block_pri":true,
+        "Buyer_address":true,
+        "Seller_address":true,
+        "Buyer_shipping":true,
+        "Table_pri":true,
+        "Table_sec":true,
+        "Amount_details":true,
+        "Total_amount":true,
+        "Document_Info_block_sec":true,
       };
     }
+
 
     const initialDisplayCols: DisplayCols = {};
 
@@ -181,178 +194,182 @@ const TableFields: React.FC<TableFieldsProps> = ({
   return (
     <div className="h-[25vh] overflow-auto sm:text-xs md:text-xs lg:text-lg xl:text-lg">
       <table className="min-w-full bg-white">
-        <thead className="sticky top-0 z-10">
-          <tr className="">
-            <th className="sticky left-0 bg-gray-300">
-              <AddField
-                displayCols={displayCols}
-                handleAddField={handleAddField}
-                handleSelectAll={handleSelectAll}
-              />
-            </th>
-            {Object.entries(displayCols).map(
-              ([fieldName, value]) =>
-                value && (
-                  <th
-                    key={fieldName}
-                    className={`px-2 text-left font-medium ${fieldName === currField
-                      ? "bg-cyan-300"
-                      : "bg-blue-500 text-white"
-                      }`}
-                  >
-                    {fieldName}
-                  </th>
-                )
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {fieldValue.map((row: any, index: number) => (
-            <tr
-              key={index}
-              className={`border-b ${index === currIndex ? "" : ""}`}
+      <thead className="sticky top-0 z-10">
+        <tr className="">
+        <th className="sticky left-0 bg-gray-300 whitespace-nowrap w-16">
+          <AddField
+          displayCols={displayCols}
+          handleAddField={handleAddField}
+          handleSelectAll={handleSelectAll}
+          />
+        </th>
+        {Object.entries(displayCols).map(
+          ([fieldName, value]) =>
+          value && (
+            <th
+            key={fieldName}
+            className={`px-2 text-left text-indigo-700 font-md ${fieldName === currField
+              ? "bg-red-200"
+              : ""
+              }`}
             >
-              <td
-                className={`sticky left-0 ${index === currIndex ? "bg-cyan-300" : "bg-gray-300"
-                  }`}
-              >
-                <button
-                  className={`px-3 text-xl font-bold rounded hover:bg-red-500 text-black focus:outline-none hover:text-white`}
-                  onClick={() => handleNestedRowDelete(fieldName, index)}
-                >
-                  -
-                </button>
-              </td>
-              {Object.entries(displayCols).map(
-                ([colName, value]) =>
-                  value && (
-                    <td
-                      key={colName}
-                      onFocus={() => {
-                        handleFieldClick(
-                          fieldName,
-                          index,
-                          colName,
-                          row[colName].location
-                        );
-                        changeCurr(index, colName);
-                      }}
-                      onClick={() => {
-                        handleFieldClick(
-                          fieldName,
-                          index,
-                          colName,
-                          row[colName].location
-                        );
-                        changeCurr(index, colName);
-                      }}
-                      className={`p-0 ${colName === currField && index === currIndex
-                        ? "bg-red-200"
-                        : ""
-                        }`}
-                    >
-                      <div className="flex">
-                        {row[colName].comment && <button
-                          onClick={() =>
-                            handleNestedFieldChange(
-                              fieldName,
-                              index,
-                              colName,
-                              "",
-                              null,
-                              "del comment"
-                            )
-                          }
-                          className="relative p-1 text-red-500 text-sm"><BiComment className="text-gray-700" /><XIcon />
-                        </button>}
-                        {(colName === currField && index === currIndex && allowReview) ?
-                          <TextareaAutosize
-                            className="text-gray-800 m-1 text-sm bg-red-50 rounded-md border overflow-hidden resize-none border-blue-300 p-1 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
-                            value={row[colName].comment || ""}
-                            placeholder="Add comment"
-                            onChange={(e) => {
-                              handleNestedFieldChange(
-                                fieldName,
-                                index,
-                                colName,
-                                e.target.value,
-                                null,
-                                "add comment"
-                              )
-                              adjustTextareaHeight(e.target);
-                            }
-                            }
-                            rows={1} // Default row count
-                            cols = {maxLength(row[colName]?.comment || "")}
-                            ref={(el) => {
-                              if (el) adjustTextareaHeight(el); // Adjust height on initial render
-                            }}
-                            wrap="off"
-                          />
-                          : <div className="m-1 text-gray-800 text-sm text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
-                            {row[colName].comment}
-                          </div>}
-                      </div>
-                      <div className="flex justify-between">
-                        <TextareaAutosize
-                          value={row[colName]?.text || ""}
-                          className="p-2 m-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                          onChange={(e) => {
-                            handleNestedFieldChange(
-                              fieldName,
-                              index,
-                              colName,
-                              e.target.value,
-                              row[colName]?.location,
-                              "update value"
-                            );
-                          }}
-                          wrap="off"
-                          rows={1}
-                          cols={maxLength(row[colName]?.text || "")}
-                          onFocus={() => (textAreaFocused.current = true)}
-                          onBlur={() => (textAreaFocused.current = false)}
-                        />
-                        {row[colName]?.location?.pageNo !== 0 && (
-                          <button
-                            onClick={() =>
-                              handleNestedFieldChange(
-                                fieldName,
-                                index,
-                                colName,
-                                row[colName].text,
-                                null,
-                                "del bbox"
-                              )
-                            }
-                            disabled={
-                              (colName !== currField || index !== currIndex)
-                            }
-                            className="relative"
-                          >
-                            <img
-                              src="rect.png" // Replace with the actual path to your PNG image
-                              alt="Draw Box"
-                              className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
-                            />
-                            {colName === currField && index === currIndex && (
-                              <XIcon />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </td>
+            {fieldName}
+            </th>
+          )
+        )}
+        </tr>
+      </thead>
+      <tbody>
+        {fieldValue.map((row: any, index: number) => (
+        <tr
+          key={index}
+          className={`m-2 p-2`}
+        >
+          <td
+          className={`sticky left-0 w-16 ${index === currIndex ? "bg-red-200" : "bg-gray-300"
+            }`}
+          >
+          <button
+            className={`px-3 text-xl font-bold rounded hover:bg-red-500 text-black focus:outline-none hover:text-white`}
+            onClick={() => handleNestedRowDelete(fieldName, index)}
+          >
+            -
+          </button>
+          </td>
+          {Object.entries(displayCols).map(
+          ([colName, value]) =>
+            value && (
+            <td
+              key={colName}
+              onFocus={() => {
+              handleFieldClick(
+                fieldName,
+                index,
+                colName,
+                row[colName].location
+              );
+              changeCurr(index, colName);
+              }}
+              onClick={() => {
+              handleFieldClick(
+                fieldName,
+                index,
+                colName,
+                row[colName].location
+              );
+              changeCurr(index, colName);
+              }}
+              className={`p-0 border ${colName === currField && index === currIndex
+              ? "bg-red-200"
+              : ""
+              }`}
+            >
+              <div className="flex">
+              {row[colName].comment && <button
+                onClick={() =>
+                handleNestedFieldChange(
+                  fieldName,
+                  index,
+                  colName,
+                  "",
+                  null,
+                  "del comment"
+                )
+                }
+                className="relative p-1 text-red-500 text-sm"><BiComment className="text-gray-700" /><XIcon />
+              </button>}
+              {(colName === currField && index === currIndex && allowReview) ?
+                <TextareaAutosize
+                className="text-gray-800 m-1 text-sm bg-red-50 rounded-md border overflow-hidden resize-none border-blue-300 p-1 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
+                value={row[colName].comment || ""}
+                placeholder="Add comment"
+                onChange={(e) => {
+                  handleNestedFieldChange(
+                  fieldName,
+                  index,
+                  colName,
+                  e.target.value,
+                  null,
+                  "add comment"
                   )
+                  adjustTextareaHeight(e.target);
+                }
+                }
+                rows={1} // Default row count
+                cols = {maxLength(row[colName]?.comment || "")}
+                ref={(el) => {
+                  if (el) adjustTextareaHeight(el); // Adjust height on initial render
+                }}
+                wrap="off"
+                />
+                : row[colName].comment && <div className="m-1 text-gray-800 text-sm text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
+                {row[colName].comment}
+                </div>}
+              </div>
+              <div className="flex">
+              {fieldName != 'ROI' ? <TextareaAutosize
+                value={row[colName]?.text || ""}
+                className="p-2 m-1 rounded-md border w-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none hover:overflow-x-auto overflow-hidden hover:whitespace-nowrap custom-scrollbar"
+                onChange={(e) => {
+                handleNestedFieldChange(
+                  fieldName,
+                  index,
+                  colName,
+                  e.target.value,
+                  row[colName]?.location,
+                  "update value"
+                );
+                adjustTextareaHeight(e.target); // Adjust height dynamically
+                }}
+                rows={1} // Default row count
+                ref={(el) => {
+                if (el) adjustTextareaHeight(el); // Adjust height on initial render
+                }}
+                wrap="off"
+                cols={maxLength(row[colName]?.text || "")}
+                onFocus={() => (textAreaFocused.current = true)}
+                onBlur={() => (textAreaFocused.current = false)}
+              />: <p className="m-2 text-gray-800 text-left whitespace-nowrap">page {index + 1}</p>}
+              {row[colName]?.location?.pageNo !== 0 && (
+                <button
+                onClick={() =>
+                  handleNestedFieldChange(
+                  fieldName,
+                  index,
+                  colName,
+                  row[colName].text,
+                  null,
+                  "del bbox"
+                  )
+                }
+                disabled={
+                  (colName !== currField || index !== currIndex)
+                }
+                className="relative"
+                >
+                <img
+                  src="rect.png" // Replace with the actual path to your PNG image
+                  alt="Draw Box"
+                  className="h-4 w-5 m-2" // Adjust the height and width of the image as needed
+                />
+                {colName === currField && index === currIndex && (
+                  <XIcon />
+                )}
+                </button>
               )}
-            </tr>
-          ))}
-        </tbody>
+              </div>
+            </td>
+            )
+          )}
+        </tr>
+        ))}
+      </tbody>
       </table>
       <button
-        className="p-1 m-2 font-bold text-black rounded hover:bg-green-700 hover:text-white focus:outline-none"
-        onClick={() => handleNestedRowAdd(fieldName)}
+      className="p-1 m-2 font-bold text-black rounded hover:bg-green-700 hover:text-white focus:outline-none"
+      onClick={() => handleNestedRowAdd(fieldName)}
       >
-        + Add Row
+      + Add Row
       </button>
     </div>
   );
