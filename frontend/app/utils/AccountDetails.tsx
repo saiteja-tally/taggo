@@ -35,7 +35,7 @@ const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboa
                 )}
             </Link>
         )}
-        <Link href="/set-password"
+        <Link href="/changePassword"
             className="block text-sm font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-2 text-center">
             Change Password
         </Link>

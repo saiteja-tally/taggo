@@ -203,10 +203,13 @@ def accept(request , status: str, id: str):
         annotation.status = 'accepted'
         ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
         annotation.history.append(f'{ist_time}: accepted by {request.user.username}')
-        if request.user.is_superuser:
-            if random.random() < 0.2:
-                annotation.assigned_to_user = request.user
-                annotation.history.append(f'{ist_time}: assigned to {request.user.username}')
+        if random.random() < 0.2:
+            superusers = User.objects.filter(is_superuser=True)
+            if superusers.exists():
+                annotation.assigned_to_user = superusers.order_by('?').first()
+            else:
+                annotation.assigned_to_user = None
+            annotation.history.append(f'{ist_time}: assigned to {annotation.assigned_to_user}')
         annotation.save()
         return JsonResponse({'status': 'success', 'message': 'Annotation accepted!'}, safe=False)
 
