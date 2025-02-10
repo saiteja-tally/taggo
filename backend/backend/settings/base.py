@@ -160,3 +160,5 @@ hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
 
 FRONTEND_URL = f'http://{local_ip}:3000'
+
+SQS_PRE_LABEL_QUEUE_URL = 'https://sqs.ap-south-1.amazonaws.com/381491826341/tally-ai-doc-ai-taggo-pre-label-queue'

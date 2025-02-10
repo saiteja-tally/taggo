@@ -14,6 +14,5 @@ DATABASES = {
 }
 
 S3_DOC_BUCKET = 'tally-ai-doc-ai-taggo-documents'
-SQS_PRE_LABEL_QUEUE_URL = 'https://sqs.ap-south-1.amazonaws.com/381491826341/tally-ai-doc-ai-taggo-pre-label-queue'
 S3_LABELLING_BUCKET = 'tally-ai-doc-ai-taggo-labelling'
 S3_LABEL_BUCKET = 'tally-ai-doc-ai-taggo-labels'
