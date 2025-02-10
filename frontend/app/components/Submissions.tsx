@@ -186,7 +186,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                 onChange={(e) => setSelectedAssignee(e.target.value)}
                 value={selectedAssignee ?? ''}
               >
-                <option value="all" className="text-gray-500">--select--</option>
+                <option value="all" className="text-gray-400">--select--</option>
                 {Object.entries(groupsWithUsers).map(([group, users]) => (
                   <optgroup key={group} label={group}>
                     {users.map((user: string) => (
@@ -207,7 +207,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   value={selectedStatus}
                 >
-                  <option value="all" className="text-gray-500">--select--</option>
+                  <option value="all" className="text-gray-400">--select--</option>
                   {uniqueStatuses.map((status) => (
                   <option key={status.value} value={status.value}>
                     {status.label}
@@ -241,7 +241,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                       onChange={(e) => handleUserChange(item.id, e.target.value !== "" ? e.target.value : null)}
                       value={item.assigned_to_user ?? ''}
                     >
-                      <option value="">--select--</option>
+                      <option value="" className="text-gray-400">--select--</option>
                       {Object.entries(groupsWithUsers).map(([group, users]) => (
                         <optgroup key={group} label={group}>
                           {users.map((user: string) => (
