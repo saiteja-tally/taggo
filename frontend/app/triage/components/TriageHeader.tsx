@@ -6,96 +6,16 @@ import axiosInstance from "@/app/utils/axiosInstance";
 
 interface TriageHeaderProps {
   doc_id: string | null;
-  status: string | null;
-  username: string | null;
   history: any[];
+  handlePrevClick: () => void;
+  handleNextClick: () => void;
 }
 
-const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, status, history, username }) => {
+const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id,  history, handlePrevClick, handleNextClick}) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
 
-  const handleNextClick = async () => {
-    if (!doc_id) {
-      console.error("Document ID is missing");
-      return;
-    }
-    try {
-      const response = await axiosInstance.get(`/get_next/${doc_id}/`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
-      }
-      const data = response.data;
-      if (data.status === "success") {
-        const annotation = data.annotation;
-        if (annotation) {
-          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;
-        }
-        else {
-          alert("You are at the last document");
-        }
-      } else {
-        alert(`Failed to get next document: ${data.message}`);
-      }
-    } catch (error) {
-      console.error("Failed to send option:", error);
-    }
-  };
-
-  const handlePrevClick = async () => {
-    if (!doc_id) {
-      console.error("Document ID is missing");
-      return;
-    }
-    try {
-      const response = await axiosInstance.get(`/get_prev/${doc_id}/`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data = response.data;
-      if (data.status === "success") {
-        const annotation = data.annotation;
-        if (annotation) {
-          window.location.href = `/triage?doc_id=${annotation.id}&history=${JSON.stringify(annotation.history)}&status=${annotation.status}&username=${username}`;
-        }
-        else {
-          alert("You are at the first document");
-        }
-      } else {
-        alert(`Failed to get next document: ${data.message}`);
-      }
-    } catch (error) {
-      console.error("Failed to send option:", error);
-    }
-  };
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.altKey && event.key === "n") {
-        event.preventDefault();
-        handleNextClick();
-      }
-    },
-    [handleNextClick]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleKeyDown]);
+  
 
   if (loading) {
     return (

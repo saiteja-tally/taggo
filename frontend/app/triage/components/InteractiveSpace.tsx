@@ -6,11 +6,13 @@ import axiosInstance from "@/app/utils/axiosInstance";
 interface InteractiveSpaceProps {
   doc_id: string;
   status: string;
+  handleNextClick: () => void;
 }
 
 const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
   doc_id,
   status,
+  handleNextClick 
 }) => {
   const [boxLocation, setBoxLocation] = useState<Record<string, any> | null>(
     null
@@ -180,84 +182,89 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
       }
     } catch (error) {
       console.error("Error accepting:", error);
-  }}
+    }
+
+    handleNextClick();
+  }
 
   const handleSubmit = async () => {
     let commentList = []
-      for (const field in extractedData) {
-        if (Array.isArray(extractedData[field])) {
-          for (const item of extractedData[field]) {
-            for (const subField in item) {
-              if (item[subField].comment) {
-                commentList.push(`${field}[${subField}]: ${item[subField].comment}`)
-              }
+    for (const field in extractedData) {
+      if (Array.isArray(extractedData[field])) {
+        for (const item of extractedData[field]) {
+          for (const subField in item) {
+            if (item[subField].comment) {
+              commentList.push(`${field}[${subField}]: ${item[subField].comment}`)
             }
           }
-        } else if (extractedData[field].comment) {
-          commentList.push(`${field}: ${extractedData[field].comment}`)
         }
+      } else if (extractedData[field].comment) {
+        commentList.push(`${field}: ${extractedData[field].comment}`)
       }
+    }
 
-      if (commentList.length > 0) {
-        alert("Please remove all comment before rejecting:\n" + commentList.join("\n"))
-        return
+    if (commentList.length > 0) {
+      alert("Please remove all comment before rejecting:\n" + commentList.join("\n"))
+      return
+    }
+
+    try {
+      const response = await axiosInstance.post(
+        `/submit/${status}/${doc_id}/`,
+        JSON.stringify(extractedData)
+      );
+
+      if (response.status >= 200 && response.status < 300) {
+        setDataChanged(false);
+        setNoData(false);
+      } else {
+        console.error("Failed to submit");
       }
+    } catch (error) {
+      console.error("Error submitting:", error);
+    }
 
-      try {
-        const response = await axiosInstance.post(
-          `/submit/${status}/${doc_id}/`,
-          JSON.stringify(extractedData)
-        );
-  
-        if (response.status >= 200 && response.status < 300) {
-          setDataChanged(false);
-          setNoData(false);
-        } else {
-          console.error("Failed to submit");
-        }
-      } catch (error) {
-        console.error("Error submitting:", error);
-      }
-
-
+    handleNextClick();
   }
 
   const handleReject = async () => {
     let commentList = []
-      for (const field in extractedData) {
-        if (Array.isArray(extractedData[field])) {
-          for (const item of extractedData[field]) {
-            for (const subField in item) {
-              if (item[subField].comment) {
-                commentList.push(`${field}[${subField}]: ${item[subField].comment}`)
-              }
+    for (const field in extractedData) {
+      if (Array.isArray(extractedData[field])) {
+        for (const item of extractedData[field]) {
+          for (const subField in item) {
+            if (item[subField].comment) {
+              commentList.push(`${field}[${subField}]: ${item[subField].comment}`)
             }
           }
-        } else if (extractedData[field].comment) {
-          commentList.push(`${field}: ${extractedData[field].comment}`)
         }
+      } else if (extractedData[field].comment) {
+        commentList.push(`${field}: ${extractedData[field].comment}`)
       }
+    }
 
-      if (commentList.length == 0) {
-        alert("Please add a comment before rejecting")
-        return
-      }
+    if (commentList.length == 0) {
+      alert("Please add a comment before rejecting")
+      return
+    }
 
-      try {
-        const response = await axiosInstance.post(
-          `/reject/${status}/${doc_id}/`,
-          JSON.stringify(extractedData)
-        );
-  
-        if (response.status >= 200 && response.status < 300) {
-          setDataChanged(false);
-          setNoData(false);
-        } else {
-          console.error("Failed to reject");
-        }
-      } catch (error) {
-        console.error("Error rejecting:", error);
+    try {
+      const response = await axiosInstance.post(
+        `/reject/${status}/${doc_id}/`,
+        JSON.stringify(extractedData)
+      );
+
+      if (response.status >= 200 && response.status < 300) {
+        setDataChanged(false);
+        setNoData(false);
+      } else {
+        console.error("Failed to reject");
       }
+    } catch (error) {
+      console.error("Error rejecting:", error);
+    }
+
+    handleNextClick();
 
   }
 
