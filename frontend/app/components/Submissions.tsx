@@ -75,7 +75,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   )
 
   // Extract unique values for dropdowns
-  const uniqueStatuses = ['uploaded', 'pre-labelled', 'labelled', 'accepted', 'rejected', 'done', 'all'].map((status) => ({ value: status, label: status }));
+  const uniqueStatuses = ['uploaded', 'pre-labelled', 'in-labelling', 'in-review', 'accepted', 'completed'].map((status) => ({ value: status, label: status }));
 
   const handleUserChange = async (id: string, username: string | null) => {
     try {
@@ -200,14 +200,21 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             </div>
             <div className="flex flex-col items-center">
               <h1 className="text-lg font-semibold mb-3">Status</h1>
-              {userData && userData.is_superuser && <Select
-                options={uniqueStatuses.map(status => ({ ...status, label: `${status.label}` }))}
-                onChange={(selectedOption) => {
-                  setSelectedStatus(selectedOption?.label || 'all');
-                }}
-                placeholder="Select status"
-                className="text-black w-full"
-              />}
+                {userData && userData.is_superuser && (
+                <select
+                  id="status-select"
+                  className="select-status-dropdown text-black rounded-md p-2"
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  value={selectedStatus}
+                >
+                  <option value="all" className="text-gray-500">--select--</option>
+                  {uniqueStatuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                  ))}
+                </select>
+                )}
             </div>
           </div>
         </div>
