@@ -1,10 +1,6 @@
 from .base import *
 
 DEBUG = True
-ALLOWED_HOSTS = ['10.96.2.132'] 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
