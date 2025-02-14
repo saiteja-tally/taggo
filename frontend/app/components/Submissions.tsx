@@ -26,6 +26,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   const [data, setData] = useState<Annotation[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalAnnotations, setTotalAnnotations] = useState<number>(0);
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [hoveredRowID, sethoveredRowID] = useState<string | null>(null);
   const [groupsWithUsers, setGroupsWithUsers] = useState<{ [key: string]: string[] }>({});
@@ -53,6 +54,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
       setData(data);
       setLoading(false);
       setIsLastPage(response.data.is_last_page);
+      setTotalAnnotations(response.data.total_annotations);
     } catch (error: any) {
       setError(error.message);
       setLoading(false);
@@ -200,7 +202,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             </div>
             <div className="flex flex-col items-center">
               <h1 className="text-lg font-semibold mb-3">Status</h1>
-                {userData && userData.is_superuser && (
+              {userData && userData.is_superuser && (
                 <select
                   id="status-select"
                   className="select-status-dropdown text-black rounded-md p-2"
@@ -209,12 +211,12 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                 >
                   <option value="all" className="text-gray-400">--select--</option>
                   {uniqueStatuses.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
-                  </option>
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
                   ))}
                 </select>
-                )}
+              )}
             </div>
           </div>
         </div>
@@ -251,7 +253,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                           ))}
                         </optgroup>
                       ))}
-                    </select>:
+                    </select> :
                       <p className="text-sm font-semibold">{item.assigned_to_user}</p>}
                   </div>
                   <Link
@@ -311,9 +313,14 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
         >
           Prev
         </button>
-        <span className="text-lg">
-          Showing {page * perPage - perPage + 1} to {Math.min(page * perPage, data.length + (page - 1) * perPage)}
-        </span>
+        <div className="text-lg text-center flex-1">
+          <p>
+            Page {page} of {Math.ceil(totalAnnotations / perPage)}
+          </p>
+          <p>
+            Showing {page * perPage - perPage + 1} to {Math.min(page * perPage, totalAnnotations)} of {totalAnnotations} annotations
+          </p>
+        </div>
         <button
           onClick={() => setPage((prev) => prev + 1)}
           disabled={isLastPage}
