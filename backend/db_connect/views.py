@@ -91,7 +91,12 @@ def get_annotations(
         data.append(annotation_data)
 
     return JsonResponse(
-        {"annotations": data, "page": annotations.number, "pages": paginator.num_pages},
+        {
+            "annotations": data,
+            "page": annotations.number,
+            "pages": paginator.num_pages,
+            "is_last_page": not annotations.has_next(),
+        },
         safe=False,
     )
 
