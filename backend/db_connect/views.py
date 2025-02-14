@@ -95,6 +95,7 @@ def get_annotations(
             "annotations": data,
             "page": annotations.number,
             "pages": paginator.num_pages,
+            "total_annotations": paginator.count,
             "is_last_page": not annotations.has_next(),
         },
         safe=False,
