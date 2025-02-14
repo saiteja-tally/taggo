@@ -52,7 +52,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
       const data: Annotation[] = await response.data.annotations;
       setData(data);
       setLoading(false);
-      setIsLastPage(data.length < perPage);
+      setIsLastPage(response.data.is_last_page);
     } catch (error: any) {
       setError(error.message);
       setLoading(false);
@@ -309,9 +309,11 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             : "bg-blue-500 hover:bg-blue-700 text-white"
             }`}
         >
-          Previous
+          Prev
         </button>
-        <span className="text-lg">Page {page}</span>
+        <span className="text-lg">
+          Showing {page * perPage - perPage + 1} to {Math.min(page * perPage, data.length + (page - 1) * perPage)}
+        </span>
         <button
           onClick={() => setPage((prev) => prev + 1)}
           disabled={isLastPage}
