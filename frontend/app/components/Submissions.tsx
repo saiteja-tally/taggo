@@ -29,6 +29,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   const [totalAnnotations, setTotalAnnotations] = useState<number>(0);
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [hoveredRowID, sethoveredRowID] = useState<string | null>(null);
+  const [hoveredLink, setHoveredLink] = useState<boolean>(false);
   const [groupsWithUsers, setGroupsWithUsers] = useState<{ [key: string]: string[] }>({});
   const [selectedAssignee, setSelectedAssignee] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -267,22 +268,25 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
                       },
                     }}
                     onClick={() => setTriageReady(true)}
-                    className={`text-center rounded-lg p-2 cursor-pointer transition-colors duration-300 ease-in-out ${item.status === "uploaded"
-                      ? "bg-green-200 hover:bg-green-300"
-                      : item.status === "pre-labelled"
-                        ? "bg-yellow-200 hover:bg-yellow-300"
-                        : item.status === "in-labelling"
-                          ? "bg-orange-200 hover:bg-orange-300"
-                          : item.status === "in-review"
-                            ? "bg-purple-200 hover:bg-purple-300"
-                            : item.status === "accepted"
-                              ? "bg-teal-200 hover:bg-teal-300"
-                              : item.status === "completed"
-                                ? "bg-gray-200 hover:bg-gray-300"
-                                : "bg-gray-300 hover:bg-gray-400"
+                    onMouseEnter={() => setHoveredLink(true)}
+                    onMouseLeave={() => setHoveredLink(false)}
+                    className={`text-center rounded-lg p-2 cursor-pointer transition-colors duration-300 ease-in-out w-32 mx-auto 
+                      ${item.status === "uploaded"
+                        ? "bg-green-200 hover:bg-green-300"
+                        : item.status === "pre-labelled"
+                          ? "bg-yellow-200 hover:bg-yellow-300"
+                          : item.status === "in-labelling"
+                            ? "bg-orange-200 hover:bg-orange-300"
+                            : item.status === "in-review"
+                              ? "bg-purple-200 hover:bg-purple-300"
+                              : item.status === "accepted"
+                                ? "bg-teal-200 hover:bg-teal-300"
+                                : item.status === "completed"
+                                  ? "bg-gray-200 hover:bg-gray-300"
+                                  : "bg-gray-300 hover:bg-gray-400"
                       }`}
                   >
-                    {item.status}
+                    {(hoveredRowID === item.id && hoveredLink) ? "View" : item.status}
                   </Link>
                 </div>
                 {(item.id == hoveredRowID) ? (
@@ -302,30 +306,30 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             ))}
           </div>}
       </div>
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex justify-between items-center mt-4 p-1 shadow-md rounded-md bg-blue-900 text-white">
         <button
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={page === 1}
-          className={`px-4 py-2 rounded-md ${page === 1
-            ? "bg-gray-300 cursor-not-allowed"
+          className={`p-4 rounded-md transition-colors duration-300 ${page === 1
+            ? "bg-gray-300 cursor-not-allowed text-gray-700"
             : "bg-blue-500 hover:bg-blue-700 text-white"
             }`}
         >
           Prev
         </button>
         <div className="text-lg text-center flex-1">
-          <p>
+          <p className="font-semibold">
             Page {page} of {Math.ceil(totalAnnotations / perPage)}
           </p>
-          <p>
-            Showing {page * perPage - perPage + 1} to {Math.min(page * perPage, totalAnnotations)} of {totalAnnotations} annotations
+          <p className="text-gray-300">
+            {Math.max(page * perPage - perPage + 1, 0)}-{Math.min(page * perPage, totalAnnotations)} of {totalAnnotations}
           </p>
         </div>
         <button
           onClick={() => setPage((prev) => prev + 1)}
           disabled={isLastPage}
-          className={`px-4 py-2 rounded-md ${isLastPage
-            ? "bg-gray-300 cursor-not-allowed"
+          className={`p-4 rounded-md transition-colors duration-300 ${isLastPage
+            ? "bg-gray-300 cursor-not-allowed text-gray-700"
             : "bg-blue-500 hover:bg-blue-700 text-white"
             }`}
         >

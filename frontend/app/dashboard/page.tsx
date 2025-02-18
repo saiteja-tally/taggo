@@ -1,14 +1,33 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Tile from './components/Tile';
-import UserAnnotationsData from './components/UserAnnotationsData';
+import {UserDashboard} from './components/UserAnnotationsData';
 import Link from "next/link";
 import { HiHome } from "react-icons/hi";
 import SelectUser from './components/SelectUser';
 
+
+interface UserData {
+    is_superuser: boolean;
+    username: string; 
+}
+
 const Dashboard: React.FC = () => {
     const [homeReady, setHomeReady] = useState<boolean>(false);
     const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [isSuperuser, setIsSuperuser] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        const storedUserData = localStorage.getItem('userData');
+        
+        if (storedUserData) {
+            const parsedUserData: UserData = JSON.parse(storedUserData);
+            setUserData(parsedUserData);
+            setIsSuperuser(parsedUserData.is_superuser);
+            console.log("storedUserData", parsedUserData);
+        }
+    }, []);
 
     if (homeReady) {
         return (
@@ -42,13 +61,23 @@ const Dashboard: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
             </header>
             <main className="mt-4">
-                <Tile />
-                <div className="mt-4">
-                    <SelectUser selectedUsername={selectedUsername} handleUserChange={handleUserChange} />
-                </div>
-                <div className="mt-4">
-                    <UserAnnotationsData selectedUsername={selectedUsername} />
-                </div>
+                {isSuperuser ?
+                    (
+                        <>
+                            <Tile />
+                            <div className="mt-4">
+                                <SelectUser selectedUsername={selectedUsername} handleUserChange={handleUserChange} />
+                            </div>
+                            <div className="mt-4">
+                                <UserDashboard username={selectedUsername} />
+                            </div>
+                        </>
+                    ) : (
+                        <div className="mt-4">
+                            <UserDashboard username={userData?.username ?? null} />
+                        </div>
+                    )
+                }
             </main>
         </div>
     );

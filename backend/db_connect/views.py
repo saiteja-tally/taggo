@@ -13,6 +13,8 @@ import json
 from django.contrib.auth.models import Group
 from rest_framework import status
 from django.db.models import Count, Q
+from django.utils.timezone import make_aware
+import pytz
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -101,7 +103,6 @@ def get_annotations(
         safe=False,
     )
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def upload_document(request):
@@ -178,7 +179,6 @@ def upload_document(request):
             )
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def assign_annotation(request):
@@ -219,7 +219,6 @@ def assign_annotation(request):
     return JsonResponse(
         {"status": "error", "message": "Invalid request method"}, status=400
     )
-
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -272,7 +271,6 @@ def smart_assign(request):
         logger.error(f"Error assigning annotations: {e}")
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_smart_assign_data(request):
@@ -302,7 +300,6 @@ def get_smart_assign_data(request):
         {"groups": groups_with_users, "status": status_counts},
         status=status.HTTP_200_OK,
     )
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -353,7 +350,6 @@ def get_annotations_count(request):
             {"status": "error", "message": "An unexpected error occurred."}, status=500
         )
 
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_groups_with_users(request):
@@ -378,3 +374,89 @@ def get_groups_with_users(request):
     groups_with_users["superusers"] = list(superusers)
 
     return JsonResponse(groups_with_users, status=200)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dashboard_view(request):
+    
+    username = request.GET.get("username")
+
+    # If a username is provided, fetch the user by the username
+    if username:
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found."}, status=404)
+    else:
+        # Use the logged-in user if no username is provided
+        user = request.user
+
+    start_date_str = request.GET.get("start_date")
+    end_date_str = request.GET.get("end_date")
+
+    print(f"Start date: {start_date_str}, End date: {end_date_str}")
+    print(f"Start date: {type(start_date_str)}, End date: {type(end_date_str)}")
+
+    # Convert strings to datetime.date objects
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+    end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+
+    print(f"Start date: {start_date}, End date: {end_date}")
+
+    # Filter labelled files for the user (those labelled by the user)
+    labelled_files = Annotation.objects.filter(
+        labelled_by=user,
+        inserted_time__gte=start_date,
+        inserted_time__lte=end_date
+    ).order_by('-inserted_time')
+
+    print("labelled_files", labelled_files)
+    
+    # Filter reviewed files for the user (those reviewed by the user)
+    reviewed_files = Annotation.objects.filter(
+        reviewed_by=user,
+        inserted_time__gte=start_date,
+        inserted_time__lte=end_date
+    ).order_by('-inserted_time')
+    print("reviewed_files", reviewed_files)
+    
+    # Pagination for labelled files
+    labelled_paginator = Paginator(labelled_files, request.GET.get("perPage", 10))
+    page_labelled = request.GET.get("page_labelled", 1)
+    labelled_page = labelled_paginator.get_page(page_labelled)
+
+    # Pagination for reviewed files
+    reviewed_paginator = Paginator(reviewed_files, request.GET.get("perPage", 10))
+    page_reviewed = request.GET.get("page_reviewed", 1)
+    reviewed_page = reviewed_paginator.get_page(page_reviewed)
+
+    labelled_data = []
+    for annotation in labelled_page:
+        labelled_data.append({
+            "ID": str(annotation.id),
+            "Reviewed By": annotation.reviewed_by.username if annotation.reviewed_by else None,
+            "Assignee": annotation.assigned_to_user.username if annotation.assigned_to_user else None,
+            "Status": annotation.status,
+        })
+
+    reviewed_data = []
+    for annotation in reviewed_page:
+        reviewed_data.append({
+            "ID": str(annotation.id),
+            "Labelled By": annotation.labelled_by.username if annotation.labelled_by else None,
+            "Assignee": annotation.assigned_to_user.username if annotation.assigned_to_user else None,
+            "Status": annotation.status,
+        })
+
+    return JsonResponse({
+        "labelled_files": labelled_data,
+        "reviewed_files": reviewed_data,
+        "page_labelled": labelled_page.number,
+        "pages_labelled": labelled_paginator.num_pages,
+        "total_labelled": labelled_paginator.count,
+        "is_last_page_labelled": not labelled_page.has_next(),
+        "page_reviewed": reviewed_page.number,
+        "pages_reviewed": reviewed_paginator.num_pages,
+        "total_reviewed": reviewed_paginator.count,
+        "is_last_page_reviewed": not reviewed_page.has_next(),
+    })

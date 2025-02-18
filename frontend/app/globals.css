@@ -28,19 +28,23 @@ body {
 
 
 .custom-scrollbar::-webkit-scrollbar {
-  height:6px; /* Thin scrollbar */
+  height: 6px;
+  /* Thin scrollbar */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #b0b0b0; /* Light gray color */
+  background-color: #b0b0b0;
+  /* Light gray color */
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #808080; /* Darker gray on hover */
+  background-color: #808080;
+  /* Darker gray on hover */
   cursor: default;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent; /* Transparent track */
+  background: transparent;
+  /* Transparent track */
 }
