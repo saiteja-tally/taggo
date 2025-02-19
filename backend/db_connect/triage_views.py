@@ -2,12 +2,12 @@ from .models import Annotation
 from django.http import JsonResponse, HttpResponse, Http404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from datetime import datetime
 from django.conf import settings
 import logging, boto3, json, io, random
 from PIL import Image
 from django.contrib.auth.models import User
 import pytesseract
+from .utils import get_current_time_ist
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ def submit(request , status: str, id: str):
         reviewers = User.objects.filter(groups__name='reviewers')
         if reviewers.exists():
             annotation.assigned_to_user = reviewers.order_by('?').first()
-        ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
+        ist_time = get_current_time_ist()
         annotation.history.append(f'{ist_time}: labelled by {request.user.username}')
         annotation.save()
 
@@ -125,13 +125,11 @@ def submit(request , status: str, id: str):
         logger.error(f"Error saving JSON data: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500) 
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_ocr_text(request):
     try:
         if request.method == 'POST' and 'file' in request.FILES:
-            start_time = datetime.now()
             uploaded_file = request.FILES['file']
 
             # Use Pillow to open the uploaded image file
@@ -146,10 +144,6 @@ def get_ocr_text(request):
             text = pytesseract.image_to_string(image)
 
             text = text.strip()
-
-            end_time = datetime.now()
-
-            logger.info(f"OCR completed in {end_time - start_time}")
 
             # Return the extracted text as JSON response
             return JsonResponse({'text': text})
@@ -171,16 +165,18 @@ def reject(request , status: str, id: str):
 
         s3.put_object(Bucket=bucket, Key=f"{id}.json", Body=json_data)
         annotation = Annotation.objects.get(id=id)
+
         if annotation.reviewed_by:
             annotation.status = 'in-review'
             annotation.assigned_to_user = annotation.reviewed_by
         elif annotation.labelled_by:
             annotation.status = 'in-labelling'
             annotation.assigned_to_user = annotation.labelled_by
+            annotation.reviewed_by = request.user
         else:
             return JsonResponse({'status': 'error', 'message': 'Cannot reject!'}, status=400)
         
-        ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
+        ist_time = get_current_time_ist()
         annotation.history.append(f'{ist_time}: rejected by {request.user.username}')
         annotation.history.append(f'{ist_time}: assigned to {annotation.assigned_to_user.username}')
         annotation.save()
@@ -201,8 +197,11 @@ def accept(request , status: str, id: str):
         s3.put_object(Bucket=settings.S3_LABELLING_BUCKET, Key=f"{id}.json", Body=json_data)
         annotation = Annotation.objects.get(id=id)
         annotation.status = 'accepted'
-        ist_time = datetime.now().astimezone().strftime('%H:%M:%S (%d-%b-%y)')
+        ist_time = get_current_time_ist()
         annotation.history.append(f'{ist_time}: accepted by {request.user.username}')
+        
+        annotation.reviewed_by = request.user
+        
         if random.random() < 0.2:
             superusers = User.objects.filter(is_superuser=True)
             if superusers.exists():
