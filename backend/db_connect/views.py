@@ -13,8 +13,7 @@ import json
 from django.contrib.auth.models import Group
 from rest_framework import status
 from django.db.models import Count, Q
-from django.utils.timezone import make_aware
-import pytz
+from .utils import get_current_time_ist
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -133,7 +132,7 @@ def upload_document(request):
 
                 # Create a new annotation record
                 annotation = Annotation(status="uploaded")
-                ist_time = datetime.now().astimezone().strftime("%H:%M:%S (%d-%b-%y)")
+                ist_time = get_current_time_ist()
                 annotation.history = [f"{ist_time}: uploaded by {uploader}"]
                 annotation.save()
 
@@ -199,7 +198,7 @@ def assign_annotation(request):
                 )
 
             annotation.assigned_to_user = assign_to_user
-            ist_time = datetime.now().astimezone().strftime("%H:%M:%S (%d-%b-%y)")
+            ist_time = get_current_time_ist()
 
             annotation.history.append(f"{ist_time}: {history_message}")
             annotation.save()
@@ -252,7 +251,7 @@ def smart_assign(request):
             user_id = users[user_index]["id"]
             annotation.assigned_to_user_id = user_id
             annotation.status = "in-labelling"
-            ist_time = datetime.now().astimezone().strftime("%H:%M:%S (%d-%b-%y)")
+            ist_time = get_current_time_ist()
             annotation.history.append(
                 f'{ist_time}: assigned to {users[user_index]["username"]} by {request.user.username}(smart assign)'
             )
