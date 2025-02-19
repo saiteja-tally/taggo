@@ -14,6 +14,7 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from django.db.models import Count, Q
 from .utils import get_current_time_ist
+from django.utils import timezone
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -390,34 +391,28 @@ def dashboard_view(request):
         # Use the logged-in user if no username is provided
         user = request.user
 
-    start_date_str = request.GET.get("start_date")
-    end_date_str = request.GET.get("end_date")
-
-    print(f"Start date: {start_date_str}, End date: {end_date_str}")
-    print(f"Start date: {type(start_date_str)}, End date: {type(end_date_str)}")
-
-    # Convert strings to datetime.date objects
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
-    end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
 
     print(f"Start date: {start_date}, End date: {end_date}")
+    print(f"Start date: {type(start_date)}, End date: {type(end_date)}")
 
     # Filter labelled files for the user (those labelled by the user)
     labelled_files = Annotation.objects.filter(
         labelled_by=user,
-        inserted_time__gte=start_date,
-        inserted_time__lte=end_date
-    ).order_by('-inserted_time')
+        labelled_at__gte=start_date,
+        labelled_at__lte=end_date
+    ).order_by('-labelled_at')
 
-    print("labelled_files", labelled_files)
+    print({"labelled_files": list(labelled_files.values())})
     
     # Filter reviewed files for the user (those reviewed by the user)
     reviewed_files = Annotation.objects.filter(
         reviewed_by=user,
-        inserted_time__gte=start_date,
-        inserted_time__lte=end_date
-    ).order_by('-inserted_time')
-    print("reviewed_files", reviewed_files)
+        reviewed_at__gte=start_date,
+        reviewed_at__lte=end_date
+    ).order_by('-reviewed_at')
+    print({"reviewed_files": list(reviewed_files.values())})
     
     # Pagination for labelled files
     labelled_paginator = Paginator(labelled_files, request.GET.get("perPage", 10))

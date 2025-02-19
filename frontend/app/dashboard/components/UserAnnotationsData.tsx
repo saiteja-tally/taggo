@@ -112,38 +112,46 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
     };
 
     const handlePrevious = () => {
-        if (activeTab === 'labelled') {
-            fetchAnnotations(
-                startDate,
-                endDate,
-                paginationData.page_labelled - 1,
-                paginationData.page_reviewed
-            );
-        } else if (activeTab === 'reviewed') {
-            fetchAnnotations(
-                startDate,
-                endDate,
-                paginationData.page_labelled,
-                paginationData.page_reviewed - 1
-            );
+        if (username) {
+            if (activeTab === 'labelled') {
+                fetchAnnotations(
+                    startDate,
+                    endDate,
+                    paginationData.page_labelled - 1,
+                    paginationData.page_reviewed,
+                    username
+                );
+            } else if (activeTab === 'reviewed') {
+                fetchAnnotations(
+                    startDate,
+                    endDate,
+                    paginationData.page_labelled,
+                    paginationData.page_reviewed - 1,
+                    username
+                );
+            }
         }
     };
 
     const handleNext = () => {
-        if (activeTab === 'labelled') {
-            fetchAnnotations(
-                startDate,
-                endDate,
-                paginationData.page_labelled + 1,
-                paginationData.page_reviewed
-            );
-        } else if (activeTab === 'reviewed') {
-            fetchAnnotations(
-                startDate,
-                endDate,
-                paginationData.page_labelled,
-                paginationData.page_reviewed + 1
-            );
+        if (username) {
+            if (activeTab === 'labelled') {
+                fetchAnnotations(
+                    startDate,
+                    endDate,
+                    paginationData.page_labelled + 1,
+                    paginationData.page_reviewed,
+                    username
+                );
+            } else if (activeTab === 'reviewed') {
+                fetchAnnotations(
+                    startDate,
+                    endDate,
+                    paginationData.page_labelled,
+                    paginationData.page_reviewed + 1,
+                    username
+                );
+            }
         }
     };
 

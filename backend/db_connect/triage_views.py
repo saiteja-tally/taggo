@@ -125,7 +125,6 @@ def submit(request , status: str, id: str):
         logger.error(f"Error saving JSON data: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500) 
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_ocr_text(request):
@@ -166,12 +165,14 @@ def reject(request , status: str, id: str):
 
         s3.put_object(Bucket=bucket, Key=f"{id}.json", Body=json_data)
         annotation = Annotation.objects.get(id=id)
+
         if annotation.reviewed_by:
             annotation.status = 'in-review'
             annotation.assigned_to_user = annotation.reviewed_by
         elif annotation.labelled_by:
             annotation.status = 'in-labelling'
             annotation.assigned_to_user = annotation.labelled_by
+            annotation.reviewed_by = request.user
         else:
             return JsonResponse({'status': 'error', 'message': 'Cannot reject!'}, status=400)
         
@@ -198,6 +199,9 @@ def accept(request , status: str, id: str):
         annotation.status = 'accepted'
         ist_time = get_current_time_ist()
         annotation.history.append(f'{ist_time}: accepted by {request.user.username}')
+        
+        annotation.reviewed_by = request.user
+        
         if random.random() < 0.2:
             superusers = User.objects.filter(is_superuser=True)
             if superusers.exists():
