@@ -26,7 +26,7 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id,  history, handlePre
   }
 
   return (
-    <div className="flex justify-between items-center bg-gradient-to-r from-blue-300 to-gray-200 p-2 shadow-lg border-black border">
+    <div className="flex justify-between items-center bg-gradient-to-r from-blue-300 to-gray-200 p-2 shadow-lg">
       <Link
         href="/"
         className="text-teal-900 hover:underline flex items-center"

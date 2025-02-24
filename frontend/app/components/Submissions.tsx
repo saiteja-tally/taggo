@@ -80,6 +80,21 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   // Extract unique values for dropdowns
   const uniqueStatuses = ['uploaded', 'pre-labelled', 'in-labelling', 'in-review', 'accepted', 'completed'].map((status) => ({ value: status, label: status }));
 
+  const handlePreLabel = async () => {
+    try {
+      const response = await axiosInstance.post('/pre_label/');
+      if (response.status === 200) {
+        console.log("Pre-label successful");
+        return true
+      } else {
+        throw new Error("Failed to pre-label");
+      }
+    } catch (error: any) {
+      console.error("Error during pre-label:", error.response?.data.message || error.message);
+      return false
+    }
+  };
+
   const handleUserChange = async (id: string, username: string | null) => {
     try {
       const response = await axiosInstance.post('/assign_annotation', {
@@ -156,71 +171,80 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mt-4 relative">
-      <div className="h-[80vh] overflow-y-auto">
-        <div className="bg-blue-900 text-white rounded-md p-4 sticky top-0 z-10">
-          <div className="grid grid-cols-3 gap-3 text-xl text-center">
-            <div className="flex flex-col items-center">
-              <h1 className="text-lg font-semibold mb-3">ID</h1>
-              <input
-                type="text"
-                value={serachID || ""}
-                onChange={(e) => setSearchID(e.target.value)}
-                placeholder="Search by ID"
-                className="text-black w-full rounded-md p-2"
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center mb-2">
-                <h1 className="text-lg font-semibold">Assignee</h1>
-                {userData && userData.is_superuser && (
-                  <button
-                    className="bg-white rounded-md ml-2 p-1 shadow hover:shadow-lg transition duration-300"
-                    onClick={() => setShowDialog(true)}
-                    title="Smart Assign"
-                  >
-                    <img src="assign-user.svg" alt="Smart Assign" className="w-6 h-6" />
-                  </button>
-                )}
-              </div>
-              {userData && userData.is_superuser && (<select
-                id="user-select"
-                className="select-user-dropdown text-black rounded-md p-2"
-                onChange={(e) => setSelectedAssignee(e.target.value)}
-                value={selectedAssignee ?? ''}
-              >
-                <option value="all" className="text-gray-400">--select--</option>
-                {Object.entries(groupsWithUsers).map(([group, users]) => (
-                  <optgroup key={group} label={group}>
-                    {users.map((user: string) => (
-                      <option key={user} value={user}>
-                        {user}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>)}
-            </div>
-            <div className="flex flex-col items-center">
-              <h1 className="text-lg font-semibold mb-3">Status</h1>
+    <div className="max-w-7xl mx-auto mt-4">
+      <div className="bg-blue-900 text-white rounded-md p-4">
+        <div className="grid grid-cols-3 gap-3 text-xl text-center">
+          <div className="flex flex-col items-center">
+            <h1 className="text-lg font-semibold mb-3">ID</h1>
+            <input
+              type="text"
+              value={serachID || ""}
+              onChange={(e) => setSearchID(e.target.value)}
+              placeholder="Search by ID"
+              className="text-black w-full rounded-md p-2"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center mb-2">
+              <h1 className="text-lg font-semibold">Assignee</h1>
               {userData && userData.is_superuser && (
-                <select
-                  id="status-select"
-                  className="select-status-dropdown text-black rounded-md p-2"
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  value={selectedStatus}
+                <button
+                  className="bg-white rounded-md ml-2 p-1 shadow hover:shadow-lg transition duration-300"
+                  onClick={() => setShowDialog(true)}
+                  title="Smart Assign"
                 >
-                  <option value="all" className="text-gray-400">--select--</option>
-                  {uniqueStatuses.map((status) => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
+                  <img src="assign-user.svg" alt="Smart Assign" className="w-6 h-6" />
+                </button>
               )}
             </div>
+            {userData && userData.is_superuser && (<select
+              id="user-select"
+              className="select-user-dropdown text-black rounded-md p-2"
+              onChange={(e) => setSelectedAssignee(e.target.value)}
+              value={selectedAssignee ?? ''}
+            >
+              <option value="all" className="text-gray-400">--select--</option>
+              {Object.entries(groupsWithUsers).map(([group, users]) => (
+                <optgroup key={group} label={group}>
+                  {users.map((user: string) => (
+                    <option key={user} value={user}>
+                      {user}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>)}
+          </div>
+          <div className="flex flex-col items-center">
+            <h1 className="text-lg font-semibold mb-3">Status</h1>
+            {userData && userData.is_superuser && (
+              <select
+                id="status-select"
+                className="select-status-dropdown text-black rounded-md p-2"
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                value={selectedStatus}
+              >
+                <option value="all" className="text-gray-400">--select--</option>
+                {uniqueStatuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            {selectedStatus === 'uploaded' && (
+                <button 
+                onClick={() => handlePreLabel()} 
+                className="bg-green-500 hover:bg-green-700 text-white font-bold m-1 px-4 py-1 rounded"
+                >
+                Pre-label
+                </button>
+            )}
           </div>
         </div>
+      </div>
+      <div className="h-[70vh] relative overflow-hidden hover:overflow-y-auto custom-scrollbar">
+
         {isLoading ?
           <div className="flex items-center justify-center h-screen">
             <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>

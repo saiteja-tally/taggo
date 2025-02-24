@@ -5,7 +5,6 @@ from django.conf import settings
 import logging
 from django.db import transaction
 import boto3
-from datetime import datetime
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +13,6 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from django.db.models import Count, Q
 from .utils import get_current_time_ist
-from django.utils import timezone
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 # Upload file to S3
 s3 = boto3.client("s3")
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -454,3 +451,34 @@ def dashboard_view(request):
         "total_reviewed": reviewed_paginator.count,
         "is_last_page_reviewed": not reviewed_page.has_next(),
     })
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def pre_label(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"status": "error", "message": "Only superusers can pre-label documents"},
+            status=403,
+        )
+
+    annotations = Annotation.objects.filter(status="uploaded")
+    sqs = boto3.client("sqs", region_name="ap-south-1")
+
+    for annotation in annotations:
+        s3_file_key = annotation.s3_file_key
+        message_body = json.dumps(
+            {
+                "id": str(annotation.id),
+                "s3_doc_bucket": settings.S3_DOC_BUCKET,
+                "s3_file_key": s3_file_key,
+                "s3_pre_label_bucket": settings.S3_LABELLING_BUCKET,
+                "database": settings.DATABASES["default"],
+            }
+        )
+
+        sqs.send_message(
+            QueueUrl=settings.SQS_PRE_LABEL_QUEUE_URL,
+            MessageBody=message_body,
+        )
+
+    return JsonResponse({"status": "success", "message": "Pre-labeling successful."})
