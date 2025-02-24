@@ -273,7 +273,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
 
   return (
     <div
-      className={`bg-white bg-opacity-0  ${viewType === "General" ? "w-[29vw]" : "mt-2"
+      className={`bg-white bg-opacity-0  ${viewType === "General" ? "w-[30vw]" : "mt-2"
         } text-center font-mono`}
     >
       {isLoading ? <div className="flex items-center justify-center h-full">
@@ -283,7 +283,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
         <div className="h-full">
           <div
             className={`${viewType === "General"
-              ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4 order-last"
+              ? "sm:mt-2 md:mt-3 lg:mt-4 xl:mt-4"
               : ""
               }`}
           >
@@ -321,9 +321,9 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               </div>
             </div>
           </div>
-          <div
-            className={`${viewType === "General" ? "h-[77vh] overflow-y-auto" : ""
-              } border border-gray-300 rounded-md`}
+            <div
+            className={`relative border-b border-gray-500 ${viewType === "General" ? "h-[78vh] overflow-y-hidden hover:overflow-y-auto custom-scrollbar" : ""
+              }`}
           >
             {extractedData ?
               Object.entries(extractedData).map(([fieldName, fieldValue]) =>

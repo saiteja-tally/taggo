@@ -312,7 +312,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   };
 
   return (
-    <div className="shadow-lg">
+    <div className="">
       <PdfTools
         docType={"pdf"}
         scale={scale}
@@ -324,8 +324,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         handleScaleChange={handleScaleChange}
       />
       <div
-        className={`${viewType === "General" ? "w-[70vw] h-[87.5vh]" : "h-[50vh]"
-          } overflow-auto scroll-smooth ${!boxLocation && selectedField ? "cursor-crosshair" : ""
+        className={`${viewType === "General" ? "h-[87vh]" : "h-[50vh]"
+          } overflow-hidden hover:overflow-auto custom-scrollbar ${!boxLocation && selectedField ? "cursor-crosshair" : ""
           }`}
         ref={viewerRef}
       >
