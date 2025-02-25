@@ -21,6 +21,7 @@ interface SingleValuedFieldProps {
     location: Record<string, any> | null,
     instruction: string
   ) => void;
+  isEdit: boolean;
 }
 
 const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
@@ -30,6 +31,7 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
   selectedField,
   handleFieldClick,
   handleSingleValuedFieldChange,
+  isEdit
 }) => {
 
   return (
@@ -49,8 +51,9 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
           <p className="font-semibold text-indigo-700">
             {fieldName}
           </p>
+
           <div className="flex items-center">
-            {fieldValue.comment && fieldValue.comment.length > 0 && (
+            {fieldValue.comment && fieldValue.comment.length > 0 && isEdit &&
               <button
                 onClick={(e) => {
                   handleSingleValuedFieldChange(
@@ -60,40 +63,45 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
                     "add comment"
                   );
                 }}
-                className="relative text-red-500 text-sm mr-2"
-              >
+                className="relative text-red-500 text-sm mr-2">
                 <BiComment className="text-gray-700" />
                 <XIcon />
               </button>
-            )}
-            {fieldName === selectedField && allowReview ? (
-              <TextareaAutosize
-                className="text-gray-800 px-2 text-sm bg-red-50 rounded-md border overflow-hidden resize-none border-blue-300 p-1 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
-                value={fieldValue.comment || ""}
-                placeholder="Add comment"
-                onChange={(e) => {
-                  handleSingleValuedFieldChange(
-                    fieldName,
-                    e.target.value,
-                    null,
-                    "add comment"
-                  );
-                  adjustTextareaHeight(e.target);
-                }}
-                rows={1} // Default row count
-                ref={(el) => {
-                  if (el) adjustTextareaHeight(el); // Adjust height on initial render
-                }}
-                wrap="off"
-              />
-            ) : (
-              <div className="m-1 text-gray-800 text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
-                {fieldValue.comment}
-              </div>
-            )}
+            }
+            {(fieldName == selectedField && allowReview && isEdit) ?
+              (
+                <TextareaAutosize
+                  className="text-gray-800 px-2 text-sm bg-red-50 rounded-md border overflow-hidden resize-none border-blue-300 p-1 focus:outline-none w-full hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar"
+                  value={fieldValue.comment || ""}
+                  placeholder="Add comment"
+                  onChange={
+                    (e) => {
+                      if (isEdit) {
+                        handleSingleValuedFieldChange(
+                          fieldName,
+                          e.target.value,
+                          null,
+                          "add comment"
+                        )
+                        adjustTextareaHeight(e.target);
+                      }
+                    }
+                  }
+                  rows={1} // Default row count
+                  ref={(el) => {
+                    if (el) adjustTextareaHeight(el); // Adjust height on initial render
+                  }}
+                  wrap="off"
+                />
+              ) : (
+                <div className="m-1 text-gray-800 text-left whitespace-nowrap overflow-x-hidden hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar">
+                  {fieldValue.comment}
+                </div>
+              )}
           </div>
         </div>
-        {fieldValue.location?.pageNo !== 0 && (
+
+        {isEdit && fieldValue.location?.pageNo !== 0 && (
           <div>
             <button
               onClick={(e) =>
@@ -126,20 +134,26 @@ const SingleValuedField: React.FC<SingleValuedFieldProps> = ({
     hover:overflow-x-auto hover:whitespace-nowrap custom-scrollbar`}
         value={fieldValue.text}
         placeholder=""
-        onChange={(e) => {
-          handleSingleValuedFieldChange(
-            fieldName,
-            e.target.value,
-            fieldValue.location,
-            "update value"
-          );
-          adjustTextareaHeight(e.target); // Adjust height dynamically
-        }}
+        onChange={
+          (e) => {
+            if (isEdit) {
+              console.log("onchange react-textarea-autosize")
+              handleSingleValuedFieldChange(
+                fieldName,
+                e.target.value,
+                fieldValue.location,
+                "update value"
+              );
+              adjustTextareaHeight(e.target); // Adjust height dynamically
+            }
+          }
+        }
         rows={1} // Default row count
         ref={(el) => {
           if (el) adjustTextareaHeight(el); // Adjust height on initial render
         }}
         wrap="off"
+        readOnly={!isEdit}
       />
     </div>
   );

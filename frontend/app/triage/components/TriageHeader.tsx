@@ -9,13 +9,12 @@ interface TriageHeaderProps {
   history: any[];
   handlePrevClick: () => void;
   handleNextClick: () => void;
+  isEdit: boolean
 }
 
-const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id,  history, handlePrevClick, handleNextClick}) => {
+const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id, history, handlePrevClick, handleNextClick, isEdit }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
-
-  
 
   if (loading) {
     return (
@@ -37,12 +36,14 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id,  history, handlePre
       </Link>
 
       <div className="flex items-center text-teal-900 relative">
-        <button
-          className="bg-gradient-to-r from-blue-500 to-cyan-300 hover:bg-gradient-to-br px-2 py-1 rounded-lg shadow-md text-sm"
-          onClick={handlePrevClick}
-        >
-          &lt; Prev
-        </button>
+        {isEdit !== false && (
+          <button
+            className="bg-gradient-to-r from-blue-500 to-cyan-300 hover:bg-gradient-to-br px-2 py-1 rounded-lg shadow-md text-sm"
+            onClick={handlePrevClick}
+          >
+            &lt; Prev
+          </button>
+        )}
         <div className="flex flex-col mx-2">
           <div className="flex items-center space-x-1">
             <p className="font-semibold text-sm">Doc ID:</p>
@@ -73,12 +74,14 @@ const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id,  history, handlePre
             </div>
           )}
         </div>
-        <button
-          className="bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-2 py-1 rounded-lg shadow-md text-sm"
-          onClick={handleNextClick}
-        >
-          Next &gt;
-        </button>
+        {isEdit !== false && (
+          <button
+            className="bg-gradient-to-r from-cyan-300 to-blue-500 hover:bg-gradient-to-bl px-2 py-1 rounded-lg shadow-md text-sm"
+            onClick={handleNextClick}
+          >
+            Next &gt;
+          </button>
+        )}
       </div>
     </div>
   );

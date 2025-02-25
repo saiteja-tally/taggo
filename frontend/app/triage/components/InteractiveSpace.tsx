@@ -7,12 +7,14 @@ interface InteractiveSpaceProps {
   doc_id: string;
   status: string;
   handleNextClick: () => void;
+  isEdit: boolean;
 }
 
 const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
   doc_id,
   status,
-  handleNextClick 
+  handleNextClick ,
+  isEdit,
 }) => {
   const [boxLocation, setBoxLocation] = useState<Record<string, any> | null>(
     null
@@ -378,6 +380,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         handleSubmit={handleSubmit}
         handleAccept={handleAccept}
         handleReject={handleReject}
+        isEdit={isEdit}
       />
     </div>
   );

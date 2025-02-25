@@ -13,6 +13,7 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from django.db.models import Count, Q
 from .utils import get_current_time_ist
+from django.utils import timezone
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -421,13 +422,22 @@ def dashboard_view(request):
     page_reviewed = request.GET.get("page_reviewed", 1)
     reviewed_page = reviewed_paginator.get_page(page_reviewed)
 
+    def format_datetime(dt):
+        if dt:
+            print(f"date: {dt}")
+            return timezone.localtime(dt).strftime("%Y-%m-%d %H:%M:%S")
+        return None
+
     labelled_data = []
     for annotation in labelled_page:
+        
         labelled_data.append({
             "ID": str(annotation.id),
             "Reviewed By": annotation.reviewed_by.username if annotation.reviewed_by else None,
             "Assignee": annotation.assigned_to_user.username if annotation.assigned_to_user else None,
             "Status": annotation.status,
+            "Labelled At": format_datetime(annotation.labelled_at),
+            "History": annotation.history,
         })
 
     reviewed_data = []
@@ -437,6 +447,8 @@ def dashboard_view(request):
             "Labelled By": annotation.labelled_by.username if annotation.labelled_by else None,
             "Assignee": annotation.assigned_to_user.username if annotation.assigned_to_user else None,
             "Status": annotation.status,
+            "Labelled At": format_datetime(annotation.reviewed_at),
+            "History": annotation.history,
         })
 
     return JsonResponse({

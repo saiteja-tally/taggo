@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Link from "next/link";
 
 interface FileData {
     ID: string;
@@ -10,6 +11,9 @@ interface FileData {
     "Reviewed By": string | null;
     Assignee: string | null;
     Status: string;
+    "Labelled At": string | null;
+    "Reviewed At": string | null;
+    History: any[];
 }
 
 interface PaginationData {
@@ -26,9 +30,33 @@ interface PaginationData {
 
 interface UserDashboardDataProps {
     username: string | null;
+    role: string | null;
 }
 
-export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) => {
+interface TabProps {
+    name: string;
+    label: string;
+    activeTab: string;
+    setActiveTab: (tab: string) => void;
+    isVisible: boolean;
+}
+
+const Tab: React.FC<TabProps> = ({ name, label, activeTab, setActiveTab, isVisible }) => {
+    if (!isVisible) return null;
+
+    return (
+        <div
+            onClick={() => setActiveTab(name)}
+            className={`cursor-pointer px-6 py-2 text-lg font-medium ${activeTab === name
+                ? "border-b-4 border-blue-500 text-blue-700"
+                : "text-gray-500 hover:text-blue-500"}`}
+        >
+            {label}
+        </div>
+    );
+};
+
+export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username, role }) => {
     const [labelledFiles, setLabelledFiles] = useState<FileData[]>([]);
     const [reviewedFiles, setReviewedFiles] = useState<FileData[]>([]);
     const [paginationData, setPaginationData] = useState<PaginationData>({
@@ -59,6 +87,7 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
     const [loading, setLoading] = useState(true);
     const perPage = 10;
 
+
     const validateDates = (start: Date | null, end: Date | null): boolean => {
         if (!start || !end) return false;
         if (start > end) {
@@ -82,6 +111,7 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
                     perPage: perPage,
                 },
             });
+            console.log(response.data);
             setLabelledFiles(response.data.labelled_files);
             setReviewedFiles(response.data.reviewed_files);
             setPaginationData(response.data);
@@ -91,7 +121,6 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
             setLoading(false);
         }
     };
-
 
     useEffect(() => {
         if (username && validateDates(startDate, endDate)) {
@@ -155,7 +184,6 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
         }
     };
 
-
     return (
         <>
             {username ?
@@ -168,18 +196,22 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
                         <div className="flex justify-between items-center mb-6">
                             <div className="tabs-container border-b border-gray-300">
                                 <div className="tabs flex">
-                                    {["labelled", "reviewed"].map((tab) => (
-                                        <div
-                                            key={tab}
-                                            onClick={() => setActiveTab(tab)}
-                                            className={`cursor-pointer px-6 py-2 text-lg font-medium ${activeTab === tab
-                                                ? "border-b-4 border-blue-500 text-blue-700"
-                                                : "text-gray-500 hover:text-blue-500"
-                                                }`}
-                                        >
-                                            {tab === "labelled" ? "Labelled Files" : "Reviewed Files"}
-                                        </div>
-                                    ))}
+                                    <Tab
+                                        name="labelled"
+                                        label="Labelled Files"
+                                        activeTab={activeTab}
+                                        setActiveTab={setActiveTab}
+                                        isVisible={(role === 'labellers') ||
+                                            (role === "superusers") || false}
+                                    />
+                                    <Tab
+                                        name="reviewed"
+                                        label="Reviewed Files"
+                                        activeTab={activeTab}
+                                        setActiveTab={setActiveTab}
+                                        isVisible={(role==='reviewers') ||
+                                            (role === "superusers") || false}
+                                    />
                                 </div>
                             </div>
 
@@ -220,15 +252,29 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
                                             <tr>
                                                 <th className="px-4 py-2 border-b text-center">ID</th>
                                                 <th className="px-4 py-2 border-b text-center">Reviewed By</th>
-                                                <th className="px-4 py-2 border-b text-center">Assignee</th>
+                                                <th className="px-4 py-2 border-b text-center">Labelled At</th>
                                                 <th className="px-4 py-2 border-b text-center">Status</th>
+                                                <th className="px-4 py-2 border-b text-center">Assignee</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {labelledFiles.map((file) => (
                                                 <tr key={file.ID} className="hover:bg-blue-100">
-                                                    <td className="px-4 py-2 border-b text-center">{file.ID}</td>
+                                                    <Link
+                                                        href={{
+                                                            pathname: "/triage",
+                                                            query: {
+                                                                doc_id: file.ID,
+                                                                history: JSON.stringify(file.History),
+                                                                status: file.Status,
+                                                                username: username || '',
+                                                                edit: false
+                                                            },
+                                                        }}>
+                                                        <td className="px-4 py-2 border-b text-center">{file.ID}</td>
+                                                    </Link>
                                                     <td className="px-4 py-2 border-b text-center">{file['Reviewed By']}</td>
+                                                    <td className="px-4 py-2 border-b text-center">{file['Labelled At']}</td>
                                                     <td className="px-4 py-2 border-b text-center">{file['Assignee']}</td>
                                                     <td className="px-4 py-2 border-b text-center">{file.Status}</td>
                                                 </tr>
@@ -247,6 +293,7 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
                                             <tr>
                                                 <th className="px-4 py-2 border-b text-center">ID</th>
                                                 <th className="px-4 py-2 border-b text-center">Labelled By</th>
+                                                <th className="px-4 py-2 border-b text-center">Reviewed At</th>
                                                 <th className="px-4 py-2 border-b text-center">Assignee</th>
                                                 <th className="px-4 py-2 border-b text-center">Status</th>
                                             </tr>
@@ -254,8 +301,21 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username }) =>
                                         <tbody>
                                             {reviewedFiles.map((file) => (
                                                 <tr key={file.ID} className="hover:bg-gray-100">
-                                                    <td className="px-4 py-2 border-b text-center">{file.ID}</td>
+                                                    <Link
+                                                        href={{
+                                                            pathname: "/triage",
+                                                            query: {
+                                                                doc_id: file.ID,
+                                                                history: JSON.stringify(file.History),
+                                                                status: file.Status,
+                                                                username: username || '',
+                                                                edit: false
+                                                            },
+                                                        }}>
+                                                        <td className="px-4 py-2 border-b text-center">{file.ID}</td>
+                                                    </Link>
                                                     <td className="px-4 py-2 border-b text-center">{file['Labelled By']}</td>
+                                                    <td className="px-4 py-2 border-b text-center">{file['Reviewed At']}</td>
                                                     <td className="px-4 py-2 border-b text-center">{file['Assignee']}</td>
                                                     <td className="px-4 py-2 border-b text-center">{file.Status}</td>
                                                 </tr>

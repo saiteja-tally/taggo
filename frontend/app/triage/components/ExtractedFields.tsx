@@ -88,6 +88,7 @@ interface ExtractedFieldsProps {
   handleSubmit: () => void;
   handleAccept: () => void;
   handleReject: () => void;
+  isEdit: boolean;
 }
 
 interface DisplayFields {
@@ -114,6 +115,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
   handleSubmit,
   handleAccept,
   handleReject,
+  isEdit,
 }) => {
 
   const [displayFields, setDisplayFields] = useState<DisplayFields>({});
@@ -201,6 +203,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
             selectedField={selectedField}
             handleFieldClick={handleFieldClick}
             handleSingleValuedFieldChange={handleSingleValuedFieldChange}
+            isEdit={isEdit}
           />
         );
       }
@@ -215,6 +218,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               handleNestedRowDelete={handleNestedRowDelete}
               handleNestedRowAdd={handleNestedRowAdd}
               handleFieldClick={handleFieldClick}
+              isEdit={isEdit}
             />
           </div>
         );
@@ -230,6 +234,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               handleNestedRowDelete={handleNestedRowDelete}
               handleNestedRowAdd={handleNestedRowAdd}
               handleFieldClick={handleFieldClick}
+              isEdit={isEdit}
             />
           </div>
         );
@@ -245,6 +250,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               handleNestedRowDelete={handleNestedRowDelete}
               handleNestedRowAdd={handleNestedRowAdd}
               handleFieldClick={handleFieldClick}
+              isEdit={isEdit}
             />
           </div>
         );
@@ -288,7 +294,7 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               }`}
           >
             <div className="flex justify-between sm:text-xs md:text-xs lg:text-lg xl:text-lg ml-auto">
-              {viewType === "General" && (
+              {viewType === "General" && isEdit !== false && (
                 <AddField
                   displayCols={displayFields}
                   handleAddField={handleAddField}
@@ -321,9 +327,12 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
               </div>
             </div>
           </div>
-            <div
-            className={`relative border-b border-gray-500 ${viewType === "General" ? "h-[78vh] overflow-y-hidden hover:overflow-y-auto custom-scrollbar" : ""
-              }`}
+          <div
+            className={`
+              relative border-b border-gray-500
+              ${viewType === "General" ? (isEdit === false ? "h-[87.5vh]" : "h-[78vh]") : ""} 
+              ${viewType === "General" ? "overflow-y-hidden hover:overflow-y-auto custom-scrollbar" : ""}
+              `}
           >
             {extractedData ?
               Object.entries(extractedData).map(([fieldName, fieldValue]) =>
@@ -343,14 +352,17 @@ const ExtractedFields: React.FC<ExtractedFieldsProps> = ({
                 </div>
               </div>}
           </div>
-          <ActionButtons
-            status={status}
-            dataChanged={dataChanged}
-            handleSave={handleSave}
-            handleReset={handleReset}
-            handleSubmit={handleSubmit}
-            handleAccept={handleAccept}
-            handleReject={handleReject} />
+
+          {isEdit !== false && (
+            <ActionButtons
+              status={status}
+              dataChanged={dataChanged}
+              handleSave={handleSave}
+              handleReset={handleReset}
+              handleSubmit={handleSubmit}
+              handleAccept={handleAccept}
+              handleReject={handleReject} />
+          )}
         </div>
       }
     </div>

@@ -20,6 +20,7 @@ function TriageContent() {
   const status = searchParams.get('status');
   const historyParam = searchParams.get('history');
   const username = searchParams.get('username');
+  const edit = searchParams.get('edit') === 'false' ? false : true;
 
   // Parse history if it exists
   const history = historyParam ? JSON.parse(historyParam) : null;
@@ -91,15 +92,16 @@ function TriageContent() {
 
   return (
     <main>
-      <TriageHeader doc_id={doc_id} history={history} handlePrevClick={handlePrevClick} handleNextClick={handleNextClick}/>
+      <TriageHeader doc_id={doc_id} history={history} handlePrevClick={handlePrevClick}
+        handleNextClick={handleNextClick} isEdit={edit} />
       {doc_id && status ? (
-        <InteractiveSpace doc_id={doc_id} status={status} handleNextClick={handleNextClick}/>
+        <InteractiveSpace doc_id={doc_id} status={status} handleNextClick={handleNextClick}
+          isEdit={edit} />
       ) : (
         <div>Invalid document ID or status</div>
       )}
     </main>
   );
 }
-
 
 export default withAuth(Triage);
